@@ -21,8 +21,19 @@ export function AdminSettings() {
     transactions,
   } = useData();
   const [upiInput, setUpiInput] = useState(platformSettings.upiId);
+  const [feeInput, setFeeInput] = useState(
+    String(platformSettings.platformFeePercent ?? 4),
+  );
+  const [bonusPercentInput, setBonusPercentInput] = useState(
+    String(platformSettings.depositBonusPercent ?? 4),
+  );
+  const [bonusMinInput, setBonusMinInput] = useState(
+    String(platformSettings.depositBonusMinAmount ?? 100),
+  );
   const [saved, setSaved] = useState(false);
   const [upiError, setUpiError] = useState("");
+  const [feeError, setFeeError] = useState("");
+  const [bonusError, setBonusError] = useState("");
 
   const handleSaveUPI = () => {
     if (!upiInput.trim()) {
@@ -30,6 +41,36 @@ export function AdminSettings() {
       return;
     }
     updatePlatformSettings({ upiId: upiInput.trim() });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleSaveFee = () => {
+    const val = Number.parseFloat(feeInput);
+    if (Number.isNaN(val) || val < 0 || val > 100) {
+      setFeeError("Enter a valid percentage between 0 and 100.");
+      return;
+    }
+    updatePlatformSettings({ platformFeePercent: val });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleSaveBonus = () => {
+    const bpVal = Number.parseFloat(bonusPercentInput);
+    const bmVal = Number.parseFloat(bonusMinInput);
+    if (Number.isNaN(bpVal) || bpVal < 0 || bpVal > 100) {
+      setBonusError("Enter a valid bonus percentage between 0 and 100.");
+      return;
+    }
+    if (Number.isNaN(bmVal) || bmVal < 1) {
+      setBonusError("Enter a valid minimum deposit amount (at least ₹1).");
+      return;
+    }
+    updatePlatformSettings({
+      depositBonusPercent: bpVal,
+      depositBonusMinAmount: bmVal,
+    });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -142,6 +183,162 @@ export function AdminSettings() {
             Current:{" "}
             <span className="font-mono" style={{ color: "#00f5ff" }}>
               {platformSettings.upiId}
+            </span>
+          </p>
+        </div>
+
+        {/* Platform Fee % */}
+        <div
+          className="max-w-md space-y-1.5 pt-4 border-t"
+          style={{ borderColor: "rgba(255,255,255,0.06)" }}
+        >
+          <Label
+            style={{ color: "#94a3b8" }}
+            className="text-xs uppercase tracking-wide"
+          >
+            Platform Fee on Withdrawal (%)
+          </Label>
+          <p className="text-xs mb-2" style={{ color: "#64748b" }}>
+            This percentage is deducted from every withdrawal payout
+          </p>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step={0.5}
+              value={feeInput}
+              onChange={(e) => {
+                setFeeInput(e.target.value);
+                setFeeError("");
+              }}
+              placeholder="e.g. 4"
+              data-ocid="admin.settings.fee.input"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,215,0,0.2)",
+                color: "#e2e8f0",
+              }}
+            />
+            <Button
+              onClick={handleSaveFee}
+              data-ocid="admin.settings.fee.save_button"
+              className="font-bold px-4"
+              style={{
+                background: "rgba(255,215,0,0.08)",
+                border: "1px solid rgba(255,215,0,0.35)",
+                color: "#ffd700",
+              }}
+            >
+              Save
+            </Button>
+          </div>
+          {feeError && (
+            <p
+              className="text-xs"
+              style={{ color: "#ff4444" }}
+              data-ocid="admin.settings.fee.error_state"
+            >
+              {feeError}
+            </p>
+          )}
+          <p className="text-xs" style={{ color: "#64748b" }}>
+            Current:{" "}
+            <span className="font-mono" style={{ color: "#ffd700" }}>
+              {platformSettings.platformFeePercent ?? 4}%
+            </span>
+          </p>
+        </div>
+
+        {/* Deposit Bonus Settings */}
+        <div
+          className="max-w-md space-y-1.5 pt-4 border-t"
+          style={{ borderColor: "rgba(255,255,255,0.06)" }}
+        >
+          <Label
+            style={{ color: "#94a3b8" }}
+            className="text-xs uppercase tracking-wide"
+          >
+            Deposit Bonus Settings
+          </Label>
+          <p className="text-xs mb-2" style={{ color: "#64748b" }}>
+            Users get this bonus % on deposits at or above the minimum amount
+          </p>
+          <div className="flex gap-2">
+            <div className="flex-1 space-y-1">
+              <p className="text-xs" style={{ color: "#64748b" }}>
+                Bonus %
+              </p>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step={0.5}
+                value={bonusPercentInput}
+                onChange={(e) => {
+                  setBonusPercentInput(e.target.value);
+                  setBonusError("");
+                }}
+                placeholder="e.g. 4"
+                data-ocid="admin.settings.bonus_percent.input"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,215,0,0.2)",
+                  color: "#e2e8f0",
+                }}
+              />
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-xs" style={{ color: "#64748b" }}>
+                Min Deposit (₹)
+              </p>
+              <Input
+                type="number"
+                min={1}
+                step={1}
+                value={bonusMinInput}
+                onChange={(e) => {
+                  setBonusMinInput(e.target.value);
+                  setBonusError("");
+                }}
+                placeholder="e.g. 100"
+                data-ocid="admin.settings.bonus_min.input"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,215,0,0.2)",
+                  color: "#e2e8f0",
+                }}
+              />
+            </div>
+            <div className="flex items-end">
+              <Button
+                onClick={handleSaveBonus}
+                data-ocid="admin.settings.bonus.save_button"
+                className="font-bold px-4 h-10"
+                style={{
+                  background: "rgba(255,215,0,0.08)",
+                  border: "1px solid rgba(255,215,0,0.35)",
+                  color: "#ffd700",
+                }}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+          {bonusError && (
+            <p
+              className="text-xs"
+              style={{ color: "#ff4444" }}
+              data-ocid="admin.settings.bonus.error_state"
+            >
+              {bonusError}
+            </p>
+          )}
+          <p className="text-xs" style={{ color: "#64748b" }}>
+            Current:{" "}
+            <span className="font-mono" style={{ color: "#ffd700" }}>
+              {platformSettings.depositBonusPercent ?? 4}% bonus on deposits of
+              ₹{platformSettings.depositBonusMinAmount ?? 100}+
             </span>
           </p>
         </div>

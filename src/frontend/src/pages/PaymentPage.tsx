@@ -10,7 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AlertCircle, CheckCircle2, Copy, CreditCard } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Copy,
+  CreditCard,
+  Gift,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Footer } from "../components/layout/Footer";
@@ -41,6 +47,16 @@ export function PaymentPage() {
 
   const paymentRequests = session ? getPaymentsByUser(session.userId) : [];
 
+  const bonusPercent = platformSettings.depositBonusPercent ?? 4;
+  const bonusMinAmount = platformSettings.depositBonusMinAmount ?? 100;
+  const amountNum = Number.parseFloat(amount);
+  const qualifiesForBonus =
+    !Number.isNaN(amountNum) && amountNum >= bonusMinAmount;
+  const bonusCoins = qualifiesForBonus
+    ? Math.floor(amountNum * (bonusPercent / 100))
+    : 0;
+  const totalCoins = qualifiesForBonus ? amountNum + bonusCoins : amountNum;
+
   const handleCopy = () => {
     navigator.clipboard.writeText(platformSettings.upiId);
     setCopied(true);
@@ -58,12 +74,12 @@ export function PaymentPage() {
       newErrors.utr = "This UTR number has already been submitted.";
     }
 
-    const amountNum = Number.parseFloat(amount);
+    const parsedAmount = Number.parseFloat(amount);
     if (!amount) {
       newErrors.amount = "Amount is required.";
-    } else if (Number.isNaN(amountNum) || amountNum <= 0) {
+    } else if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
       newErrors.amount = "Enter a valid amount.";
-    } else if (amountNum < 20) {
+    } else if (parsedAmount < 20) {
       newErrors.amount = "Minimum deposit amount is ₹20.";
     }
 
@@ -77,7 +93,7 @@ export function PaymentPage() {
       createPaymentRequest({
         userId: session!.userId,
         utrNumber: utr.trim(),
-        amountPaid: amountNum,
+        amountPaid: parsedAmount,
       });
       setSuccessMsg(
         `Payment request submitted! UTR: ${utr.trim()}. Admin will verify and add coins shortly.`,
@@ -167,6 +183,25 @@ export function PaymentPage() {
                   )}
                   {copied ? "Copied!" : "Copy"}
                 </button>
+              </div>
+
+              {/* Bonus Banner */}
+              <div
+                className="flex items-center gap-2 p-3 rounded-lg mb-3"
+                style={{
+                  background: "rgba(255,215,0,0.08)",
+                  border: "1px solid rgba(255,215,0,0.35)",
+                }}
+                data-ocid="payment.bonus.panel"
+              >
+                <Gift
+                  className="w-4 h-4 shrink-0"
+                  style={{ color: "#ffd700" }}
+                />
+                <p className="text-sm font-medium" style={{ color: "#ffd700" }}>
+                  Deposit ₹{bonusMinAmount}+ and get{" "}
+                  <strong>{bonusPercent}% bonus coins</strong> free!
+                </p>
               </div>
 
               <div className="space-y-2 text-sm" style={{ color: "#94a3b8" }}>
@@ -288,6 +323,63 @@ export function PaymentPage() {
                     >
                       {errors.amount}
                     </p>
+                  )}
+
+                  {/* Live Bonus Breakdown */}
+                  {!Number.isNaN(amountNum) && amountNum >= 20 && (
+                    <div
+                      className="rounded-lg p-3 space-y-1.5"
+                      data-ocid="payment.bonus.breakdown"
+                      style={{
+                        background: qualifiesForBonus
+                          ? "rgba(255,215,0,0.06)"
+                          : "rgba(255,255,255,0.03)",
+                        border: qualifiesForBonus
+                          ? "1px solid rgba(255,215,0,0.3)"
+                          : "1px solid rgba(255,255,255,0.07)",
+                      }}
+                    >
+                      <div
+                        className="flex justify-between text-xs"
+                        style={{ color: "#94a3b8" }}
+                      >
+                        <span>Base coins</span>
+                        <span className="font-mono">{amountNum} coins</span>
+                      </div>
+                      {qualifiesForBonus ? (
+                        <>
+                          <div
+                            className="flex justify-between text-xs"
+                            style={{ color: "#ffd700" }}
+                          >
+                            <span>
+                              🎁 {bonusPercent}% bonus (₹{bonusMinAmount}+
+                              offer)
+                            </span>
+                            <span className="font-mono">
+                              +{bonusCoins} coins
+                            </span>
+                          </div>
+                          <div
+                            className="flex justify-between text-sm font-bold border-t pt-1.5"
+                            style={{
+                              color: "#39ff14",
+                              borderColor: "rgba(255,215,0,0.2)",
+                            }}
+                          >
+                            <span>Total you receive</span>
+                            <span className="font-mono">
+                              {totalCoins} coins
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-xs" style={{ color: "#64748b" }}>
+                          Deposit ₹{bonusMinAmount}+ to unlock {bonusPercent}%
+                          bonus coins
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 

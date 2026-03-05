@@ -15,9 +15,25 @@ import { PaymentStatusBadge } from "../../../components/shared/StatusBadge";
 import { useData } from "../../../contexts/DataContext";
 
 export function AdminPayments() {
-  const { paymentRequests, updatePaymentRequest, adjustCoins, getUserById } =
-    useData();
+  const {
+    paymentRequests,
+    updatePaymentRequest,
+    adjustCoins,
+    getUserById,
+    platformSettings,
+  } = useData();
   const [coinsToAdd, setCoinsToAdd] = useState<Record<string, string>>({});
+
+  const bonusPercent = platformSettings.depositBonusPercent ?? 4;
+  const bonusMinAmount = platformSettings.depositBonusMinAmount ?? 100;
+
+  function getSuggestedCoins(amountPaid: number): number {
+    const base = amountPaid;
+    if (amountPaid >= bonusMinAmount) {
+      return Math.floor(base + base * (bonusPercent / 100));
+    }
+    return base;
+  }
 
   const sorted = [...paymentRequests].sort(
     (a, b) =>
@@ -182,55 +198,68 @@ export function AdminPayments() {
                     </TableCell>
                     <TableCell>
                       {req.status === "pending" ? (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            placeholder="Coins"
-                            value={coinsToAdd[req.id] ?? ""}
-                            onChange={(e) =>
-                              setCoinsToAdd((prev) => ({
-                                ...prev,
-                                [req.id]: e.target.value,
-                              }))
-                            }
-                            data-ocid={`admin.payment.coins.input.${i + 1}`}
-                            className="h-7 w-20 text-xs"
-                            style={{
-                              background: "rgba(255,255,255,0.04)",
-                              border: "1px solid rgba(0,245,255,0.2)",
-                              color: "#e2e8f0",
-                            }}
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              handleApprove(req.id, req.userId, req.utrNumber)
-                            }
-                            data-ocid={`admin.payment.approve.button.${i + 1}`}
-                            className="h-7 text-xs font-bold"
-                            style={{
-                              background: "rgba(57,255,20,0.1)",
-                              border: "1px solid rgba(57,255,20,0.35)",
-                              color: "#39ff14",
-                            }}
-                          >
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleReject(req.id)}
-                            data-ocid={`admin.payment.reject.button.${i + 1}`}
-                            className="h-7 text-xs font-bold"
-                            style={{
-                              background: "rgba(255,68,68,0.08)",
-                              border: "1px solid rgba(255,68,68,0.3)",
-                              color: "#ff4444",
-                            }}
-                          >
-                            <XCircle className="w-3 h-3 mr-1" />
-                            Reject
-                          </Button>
+                        <div className="flex flex-col gap-1">
+                          {req.amountPaid >= bonusMinAmount && (
+                            <p className="text-xs" style={{ color: "#ffd700" }}>
+                              🎁 {bonusPercent}% bonus applies (suggest{" "}
+                              {getSuggestedCoins(req.amountPaid)})
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              placeholder={String(
+                                getSuggestedCoins(req.amountPaid),
+                              )}
+                              value={coinsToAdd[req.id] ?? ""}
+                              onChange={(e) =>
+                                setCoinsToAdd((prev) => ({
+                                  ...prev,
+                                  [req.id]: e.target.value,
+                                }))
+                              }
+                              data-ocid={`admin.payment.coins.input.${i + 1}`}
+                              className="h-7 w-24 text-xs"
+                              style={{
+                                background: "rgba(255,255,255,0.04)",
+                                border:
+                                  req.amountPaid >= bonusMinAmount
+                                    ? "1px solid rgba(255,215,0,0.35)"
+                                    : "1px solid rgba(0,245,255,0.2)",
+                                color: "#e2e8f0",
+                              }}
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                handleApprove(req.id, req.userId, req.utrNumber)
+                              }
+                              data-ocid={`admin.payment.approve.button.${i + 1}`}
+                              className="h-7 text-xs font-bold"
+                              style={{
+                                background: "rgba(57,255,20,0.1)",
+                                border: "1px solid rgba(57,255,20,0.35)",
+                                color: "#39ff14",
+                              }}
+                            >
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleReject(req.id)}
+                              data-ocid={`admin.payment.reject.button.${i + 1}`}
+                              className="h-7 text-xs font-bold"
+                              style={{
+                                background: "rgba(255,68,68,0.08)",
+                                border: "1px solid rgba(255,68,68,0.3)",
+                                color: "#ff4444",
+                              }}
+                            >
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
                         </div>
                       ) : (
                         <span className="text-xs" style={{ color: "#475569" }}>

@@ -7,7 +7,6 @@ import React, {
   useContext,
   useState,
   useCallback,
-  useEffect,
   type ReactNode,
 } from "react";
 import { STORAGE_KEYS, getItem, removeItem, setItem } from "../lib/storage";
@@ -26,15 +25,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  // Synchronous lazy initializer — reads from localStorage on first render,
+  // so `session` is never null during render if the user is already logged in.
+  const [session, setSession] = useState<Session | null>(
+    () => getItem<Session>(STORAGE_KEYS.SESSION) ?? null,
+  );
   const [currentUser, setCurrentUser] = useState<LocalUser | null>(null);
-
-  useEffect(() => {
-    const storedSession = getItem<Session>(STORAGE_KEYS.SESSION);
-    if (storedSession) {
-      setSession(storedSession);
-    }
-  }, []);
 
   const login = useCallback((user: LocalUser) => {
     const sess: Session = {

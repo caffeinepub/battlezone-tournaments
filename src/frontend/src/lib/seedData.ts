@@ -128,4 +128,7 @@ export function generateSeedTransactions(): Transaction[] {
 
 export const SEED_PLATFORM_SETTINGS: PlatformSettings = {
   upiId: "battlezone@paytm",
+  platformFeePercent: 4,
+  depositBonusPercent: 4,
+  depositBonusMinAmount: 100,
 };

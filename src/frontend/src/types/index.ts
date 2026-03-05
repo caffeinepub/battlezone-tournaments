@@ -16,6 +16,13 @@ export interface LocalUser {
   createdAt: string;
 }
 
+export interface TournamentWinner {
+  userId: string;
+  rank: number;
+  coinsAwarded: number;
+  awardedAt: string;
+}
+
 export interface Tournament {
   id: string;
   name: string;
@@ -30,6 +37,7 @@ export interface Tournament {
   roomPassword?: string;
   roomVisible: boolean;
   joinedUserIds: string[];
+  winners?: TournamentWinner[];
   createdAt: string;
 }
 
@@ -63,8 +71,12 @@ export interface PaymentRequest {
 export interface WithdrawalRequest {
   id: string;
   userId: string;
-  amountCoins: number;
+  amountCoins: number; // total coins deducted from wallet
+  platformFee: number; // fee coins kept by platform
+  payoutCoins: number; // coins actually paid to user (amountCoins - platformFee)
   upiId: string;
+  withdrawalMethod?: "upi" | "google_play_gift_card";
+  email?: string;
   status: "pending" | "approved" | "rejected" | "completed";
   requestedAt: string;
   reviewedAt?: string;
@@ -72,6 +84,9 @@ export interface WithdrawalRequest {
 
 export interface PlatformSettings {
   upiId: string;
+  platformFeePercent: number; // e.g. 4 means 4%
+  depositBonusPercent: number; // e.g. 4 means 4% bonus on deposits >= depositBonusMinAmount
+  depositBonusMinAmount: number; // minimum ₹ deposit to qualify for bonus (e.g. 100)
 }
 
 export interface Session {

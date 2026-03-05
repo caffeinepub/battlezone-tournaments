@@ -531,6 +531,256 @@ export function TournamentDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* ─── Joined Players ─── */}
+        <div
+          className="mt-6 rounded-xl overflow-hidden"
+          style={{
+            background: "rgba(13,13,26,0.95)",
+            border: "1px solid rgba(0,245,255,0.12)",
+          }}
+          data-ocid="tournament.players.panel"
+        >
+          <div
+            className="flex items-center gap-2 px-5 py-3"
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          >
+            <Users className="w-4 h-4" style={{ color: "#00f5ff" }} />
+            <h2
+              className="font-display font-bold text-base"
+              style={{ color: "#e2e8f0" }}
+            >
+              Joined Players
+            </h2>
+            <span
+              className="ml-auto font-mono text-xs"
+              style={{ color: "#64748b" }}
+            >
+              {tournament.joinedUserIds.length} / {tournament.maxPlayers}
+            </span>
+          </div>
+
+          {tournament.joinedUserIds.length === 0 ? (
+            <div
+              className="py-10 text-center"
+              data-ocid="tournament.players.empty_state"
+            >
+              <Users
+                className="w-10 h-10 mx-auto mb-3 opacity-20"
+                style={{ color: "#00f5ff" }}
+              />
+              <p className="text-sm" style={{ color: "#475569" }}>
+                No players have joined yet.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+                  >
+                    <th
+                      className="text-left px-5 py-2.5 text-xs font-medium w-12"
+                      style={{ color: "#64748b" }}
+                    >
+                      #
+                    </th>
+                    <th
+                      className="text-left px-5 py-2.5 text-xs font-medium"
+                      style={{ color: "#64748b" }}
+                    >
+                      In-Game Name
+                    </th>
+                    <th
+                      className="text-left px-5 py-2.5 text-xs font-medium"
+                      style={{ color: "#64748b" }}
+                    >
+                      Free Fire UID
+                    </th>
+                    <th
+                      className="text-left px-5 py-2.5 text-xs font-medium"
+                      style={{ color: "#64748b" }}
+                    >
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tournament.joinedUserIds.map((uid, idx) => {
+                    const player = users.find((u) => u.id === uid);
+                    const isWinner = tournament.winners?.some(
+                      (w) => w.userId === uid,
+                    );
+                    const winnerEntry = tournament.winners?.find(
+                      (w) => w.userId === uid,
+                    );
+                    return (
+                      <tr
+                        key={uid}
+                        data-ocid={`tournament.players.row.${idx + 1}`}
+                        style={{
+                          borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        }}
+                        className="hover:bg-white/[0.02] transition-colors"
+                      >
+                        <td
+                          className="px-5 py-3 font-mono text-xs"
+                          style={{ color: "#475569" }}
+                        >
+                          {idx + 1}
+                        </td>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-2">
+                            {isWinner && (
+                              <Trophy
+                                className="w-3.5 h-3.5 flex-shrink-0"
+                                style={{ color: "#ffd700" }}
+                              />
+                            )}
+                            <span
+                              className="font-medium text-sm"
+                              style={{ color: "#e2e8f0" }}
+                            >
+                              {player?.inGameName ?? "Unknown Player"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span
+                            className="font-mono text-xs"
+                            style={{ color: "#94a3b8" }}
+                          >
+                            {player?.freeFireUID ?? "—"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3">
+                          {isWinner && winnerEntry ? (
+                            <span
+                              className="text-xs font-bold"
+                              style={{
+                                color:
+                                  winnerEntry.rank === 1
+                                    ? "#ffd700"
+                                    : winnerEntry.rank === 2
+                                      ? "#94a3b8"
+                                      : "#cd7f32",
+                              }}
+                            >
+                              🏆 Rank #{winnerEntry.rank}
+                            </span>
+                          ) : (
+                            <span
+                              className="text-xs"
+                              style={{ color: "#475569" }}
+                            >
+                              Participant
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* ─── Results / Winners ─── */}
+        {tournament.winners && tournament.winners.length > 0 && (
+          <div
+            className="mt-6 rounded-xl overflow-hidden"
+            style={{
+              background: "rgba(13,13,26,0.95)",
+              border: "1px solid rgba(255,215,0,0.2)",
+            }}
+            data-ocid="tournament.results.panel"
+          >
+            {/* gold top glow line */}
+            <div
+              className="h-0.5"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent, #ffd700, transparent)",
+              }}
+            />
+            <div
+              className="flex items-center gap-2 px-5 py-3"
+              style={{ borderBottom: "1px solid rgba(255,215,0,0.1)" }}
+            >
+              <Trophy className="w-4 h-4" style={{ color: "#ffd700" }} />
+              <h2
+                className="font-display font-bold text-base"
+                style={{ color: "#ffd700" }}
+              >
+                Results
+              </h2>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {[...tournament.winners]
+                .sort((a, b) => a.rank - b.rank)
+                .map((winner, idx) => {
+                  const player = users.find((u) => u.id === winner.userId);
+                  const rankColor =
+                    winner.rank === 1
+                      ? "#ffd700"
+                      : winner.rank === 2
+                        ? "#94a3b8"
+                        : winner.rank === 3
+                          ? "#cd7f32"
+                          : "#64748b";
+                  const rankLabel =
+                    winner.rank === 1
+                      ? "🥇 1st"
+                      : winner.rank === 2
+                        ? "🥈 2nd"
+                        : winner.rank === 3
+                          ? "🥉 3rd"
+                          : `#${winner.rank}`;
+                  return (
+                    <div
+                      key={winner.userId}
+                      data-ocid={`tournament.results.item.${idx + 1}`}
+                      className="flex items-center justify-between rounded-lg px-4 py-3"
+                      style={{
+                        background:
+                          winner.rank === 1
+                            ? "rgba(255,215,0,0.06)"
+                            : "rgba(255,255,255,0.02)",
+                        border: `1px solid ${winner.rank === 1 ? "rgba(255,215,0,0.2)" : "rgba(255,255,255,0.05)"}`,
+                      }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span
+                          className="text-sm font-bold font-mono w-10"
+                          style={{ color: rankColor }}
+                        >
+                          {rankLabel}
+                        </span>
+                        <div>
+                          <p
+                            className="text-sm font-bold"
+                            style={{ color: "#e2e8f0" }}
+                          >
+                            {player?.inGameName ?? "Unknown"}
+                          </p>
+                          <p
+                            className="text-xs font-mono"
+                            style={{ color: "#64748b" }}
+                          >
+                            UID: {player?.freeFireUID ?? "—"}
+                          </p>
+                        </div>
+                      </div>
+                      <CoinBadge amount={winner.coinsAwarded} size="sm" />
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </div>

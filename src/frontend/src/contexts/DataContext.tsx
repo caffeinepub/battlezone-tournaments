@@ -7,7 +7,6 @@ import React, {
   useContext,
   useState,
   useCallback,
-  useEffect,
   type ReactNode,
 } from "react";
 import {
@@ -111,33 +110,34 @@ function initializeData(): void {
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [users, setUsers] = useState<LocalUser[]>([]);
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+  // All state is initialised synchronously from localStorage via lazy initialisers.
+  // `initializeData()` seeds localStorage on the very first run, so by the time
+  // the lazy initialisers read from storage the data is already there.  This
+  // eliminates the one-render flash where contexts are empty and "My Tournaments"
+  // shows the empty state even for a logged-in user who has joined tournaments.
+  const [users, setUsers] = useState<LocalUser[]>(() => {
+    initializeData();
+    return getItem<LocalUser[]>(STORAGE_KEYS.USERS) ?? [];
+  });
+  const [tournaments, setTournaments] = useState<Tournament[]>(
+    () => getItem<Tournament[]>(STORAGE_KEYS.TOURNAMENTS) ?? [],
+  );
+  const [transactions, setTransactions] = useState<Transaction[]>(
+    () => getItem<Transaction[]>(STORAGE_KEYS.TRANSACTIONS) ?? [],
+  );
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(
+    () => getItem<PaymentRequest[]>(STORAGE_KEYS.PAYMENT_REQUESTS) ?? [],
+  );
   const [withdrawalRequests, setWithdrawalRequests] = useState<
     WithdrawalRequest[]
-  >([]);
+  >(() => getItem<WithdrawalRequest[]>(STORAGE_KEYS.WITHDRAWAL_REQUESTS) ?? []);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(
-    SEED_PLATFORM_SETTINGS,
+    () => {
+      const stored = getItem<PlatformSettings>(STORAGE_KEYS.PLATFORM_SETTINGS);
+      // Migrate legacy settings that may not have newer fields
+      return { ...SEED_PLATFORM_SETTINGS, ...stored };
+    },
   );
-
-  useEffect(() => {
-    initializeData();
-    setUsers(getItem<LocalUser[]>(STORAGE_KEYS.USERS) ?? []);
-    setTournaments(getItem<Tournament[]>(STORAGE_KEYS.TOURNAMENTS) ?? []);
-    setTransactions(getItem<Transaction[]>(STORAGE_KEYS.TRANSACTIONS) ?? []);
-    setPaymentRequests(
-      getItem<PaymentRequest[]>(STORAGE_KEYS.PAYMENT_REQUESTS) ?? [],
-    );
-    setWithdrawalRequests(
-      getItem<WithdrawalRequest[]>(STORAGE_KEYS.WITHDRAWAL_REQUESTS) ?? [],
-    );
-    setPlatformSettings(
-      getItem<PlatformSettings>(STORAGE_KEYS.PLATFORM_SETTINGS) ??
-        SEED_PLATFORM_SETTINGS,
-    );
-  }, []);
 
   // ---- Users ----
   const getUserById = useCallback(

@@ -7,7 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowDownToLine, CheckCircle2, XCircle } from "lucide-react";
+import {
+  ArrowDownToLine,
+  CheckCircle2,
+  Gift,
+  Smartphone,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { CoinBadge } from "../../../components/shared/CoinBadge";
 import { WithdrawalStatusBadge } from "../../../components/shared/StatusBadge";
@@ -19,7 +25,10 @@ export function AdminWithdrawals() {
     updateWithdrawalRequest,
     adjustCoins,
     getUserById,
+    platformSettings,
   } = useData();
+
+  const feePercent = platformSettings.platformFeePercent ?? 4;
 
   const sorted = [...withdrawalRequests].sort(
     (a, b) =>
@@ -30,20 +39,24 @@ export function AdminWithdrawals() {
     (w) => w.status === "pending",
   ).length;
 
-  const handleApprove = (reqId: string, userId: string, amount: number) => {
+  const handleApprove = (
+    reqId: string,
+    _userId: string,
+    payoutCoins: number,
+    inGameName: string,
+  ) => {
     // Coins already deducted at request time, just mark completed
     updateWithdrawalRequest(reqId, {
       status: "completed",
       reviewedAt: new Date().toISOString(),
     });
-    const user = getUserById(userId);
     toast.success(
-      `Withdrawal approved for ${user?.inGameName ?? "user"}. ₹${amount} to be sent.`,
+      `Withdrawal approved for ${inGameName}. Send ${payoutCoins} coins (₹${payoutCoins}).`,
     );
   };
 
   const handleReject = (reqId: string, userId: string, amount: number) => {
-    // Refund coins
+    // Refund the full deducted amount (not just payout)
     adjustCoins(
       userId,
       amount,
@@ -54,7 +67,7 @@ export function AdminWithdrawals() {
       status: "rejected",
       reviewedAt: new Date().toISOString(),
     });
-    toast.success(`Withdrawal rejected. ${amount} coins refunded.`);
+    toast.success(`Withdrawal rejected. ${amount} coins refunded to wallet.`);
   };
 
   return (
@@ -108,8 +121,13 @@ export function AdminWithdrawals() {
               <TableRow style={{ borderColor: "rgba(255,255,255,0.06)" }}>
                 <TableHead style={{ color: "#64748b" }}>Date</TableHead>
                 <TableHead style={{ color: "#64748b" }}>Player</TableHead>
-                <TableHead style={{ color: "#64748b" }}>Coins</TableHead>
-                <TableHead style={{ color: "#64748b" }}>UPI ID</TableHead>
+                <TableHead style={{ color: "#64748b" }}>Requested</TableHead>
+                <TableHead style={{ color: "#64748b" }}>
+                  Fee ({feePercent}%)
+                </TableHead>
+                <TableHead style={{ color: "#39ff14" }}>Payout</TableHead>
+                <TableHead style={{ color: "#64748b" }}>Method</TableHead>
+                <TableHead style={{ color: "#64748b" }}>Details</TableHead>
                 <TableHead style={{ color: "#64748b" }}>Status</TableHead>
                 <TableHead style={{ color: "#64748b" }}>Actions</TableHead>
               </TableRow>
@@ -117,6 +135,13 @@ export function AdminWithdrawals() {
             <TableBody>
               {sorted.map((req, i) => {
                 const user = getUserById(req.userId);
+                const isGPlay =
+                  req.withdrawalMethod === "google_play_gift_card";
+                // Support legacy requests without fee fields
+                const fee =
+                  req.platformFee ??
+                  Math.ceil((req.amountCoins * feePercent) / 100);
+                const payout = req.payoutCoins ?? req.amountCoins - fee;
                 return (
                   <TableRow
                     key={req.id}
@@ -150,11 +175,46 @@ export function AdminWithdrawals() {
                     <TableCell>
                       <CoinBadge amount={req.amountCoins} size="sm" />
                     </TableCell>
+                    <TableCell>
+                      <span
+                        className="text-xs font-mono"
+                        style={{ color: "#ff6b6b" }}
+                      >
+                        -{fee}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <CoinBadge amount={payout} size="sm" />
+                        <span className="text-xs" style={{ color: "#39ff14" }}>
+                          ₹{payout} to send
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {isGPlay ? (
+                        <span
+                          className="text-xs font-semibold flex items-center gap-1 whitespace-nowrap"
+                          style={{ color: "#39ff14" }}
+                        >
+                          <Gift className="w-3 h-3 shrink-0" />
+                          Google Play
+                        </span>
+                      ) : (
+                        <span
+                          className="text-xs font-semibold flex items-center gap-1"
+                          style={{ color: "#00f5ff" }}
+                        >
+                          <Smartphone className="w-3 h-3 shrink-0" />
+                          UPI
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell
                       className="font-mono text-sm"
                       style={{ color: "#94a3b8" }}
                     >
-                      {req.upiId}
+                      {isGPlay ? (req.email ?? "-") : req.upiId || "-"}
                     </TableCell>
                     <TableCell>
                       <WithdrawalStatusBadge status={req.status} />
@@ -165,10 +225,15 @@ export function AdminWithdrawals() {
                           <Button
                             size="sm"
                             onClick={() =>
-                              handleApprove(req.id, req.userId, req.amountCoins)
+                              handleApprove(
+                                req.id,
+                                req.userId,
+                                payout,
+                                user?.inGameName ?? "user",
+                              )
                             }
                             data-ocid={`admin.withdrawal.approve.button.${i + 1}`}
-                            className="h-7 text-xs font-bold"
+                            className="h-7 text-xs font-bold whitespace-nowrap"
                             style={{
                               background: "rgba(57,255,20,0.1)",
                               border: "1px solid rgba(57,255,20,0.35)",
@@ -176,7 +241,7 @@ export function AdminWithdrawals() {
                             }}
                           >
                             <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Approve
+                            Approve (₹{payout})
                           </Button>
                           <Button
                             size="sm"
