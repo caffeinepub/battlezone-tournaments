@@ -11,15 +11,19 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
+  ArrowRight,
   CreditCard,
   TrendingDown,
   TrendingUp,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
+import { TransactionDetailModal } from "../components/TransactionDetailModal";
 import { Footer } from "../components/layout/Footer";
 import { Navbar } from "../components/layout/Navbar";
 import { useAuth } from "../contexts/AuthContext";
 import { useData } from "../contexts/DataContext";
+import type { Transaction } from "../types";
 
 const ACTION_LABELS: Record<
   string,
@@ -42,6 +46,7 @@ export function WalletPage() {
   const { getTransactionsByUser, users } = useData();
   const { session } = useAuth();
   const navigate = useNavigate();
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   const liveUser = users.find((u) => u.id === session?.userId);
   const coinBalance = liveUser?.coinBalance ?? 0;
@@ -206,6 +211,7 @@ export function WalletPage() {
                     >
                       Amount
                     </TableHead>
+                    <TableHead className="w-8" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -222,8 +228,12 @@ export function WalletPage() {
                       <TableRow
                         key={tx.id}
                         data-ocid={`wallet.transactions.row.${i + 1}`}
-                        style={{ borderColor: "rgba(255,255,255,0.04)" }}
-                        className="hover:bg-white/[0.02] transition-colors"
+                        style={{
+                          borderColor: "rgba(255,255,255,0.04)",
+                          cursor: "pointer",
+                        }}
+                        className="hover:bg-white/[0.04] transition-colors group"
+                        onClick={() => setSelectedTx(tx)}
                       >
                         <TableCell
                           className="text-xs font-mono"
@@ -269,6 +279,12 @@ export function WalletPage() {
                             {tx.amount.toLocaleString()}
                           </span>
                         </TableCell>
+                        <TableCell className="w-8 text-center">
+                          <ArrowRight
+                            className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity mx-auto"
+                            style={{ color: "#00f5ff" }}
+                          />
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -279,6 +295,12 @@ export function WalletPage() {
         </div>
       </main>
       <Footer />
+
+      <TransactionDetailModal
+        transaction={selectedTx}
+        onClose={() => setSelectedTx(null)}
+        data-ocid="wallet.transaction.detail.modal"
+      />
     </div>
   );
 }

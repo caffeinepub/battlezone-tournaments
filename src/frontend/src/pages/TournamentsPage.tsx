@@ -11,22 +11,16 @@ import type { TournamentStatus } from "../types";
 export function TournamentsPage() {
   const { tournaments } = useData();
   const { session } = useAuth();
-  const [filter, setFilter] = useState<TournamentStatus | "all">("all");
+  const [filter, setFilter] = useState<TournamentStatus>("upcoming");
 
-  const filtered = tournaments.filter((t) =>
-    filter === "all" ? true : t.status === filter,
+  const filtered = tournaments.filter((t) => t.status === filter);
+
+  // Sort: by date ascending
+  const sorted = [...filtered].sort(
+    (a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime(),
   );
 
-  // Sort: live first, then upcoming (by date), then completed
-  const sorted = [...filtered].sort((a, b) => {
-    const order = { live: 0, upcoming: 1, completed: 2 };
-    if (order[a.status] !== order[b.status])
-      return order[a.status] - order[b.status];
-    return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
-  });
-
   const counts = {
-    all: tournaments.length,
     upcoming: tournaments.filter((t) => t.status === "upcoming").length,
     live: tournaments.filter((t) => t.status === "live").length,
     completed: tournaments.filter((t) => t.status === "completed").length,
@@ -55,7 +49,7 @@ export function TournamentsPage() {
         {/* Filter Tabs */}
         <Tabs
           value={filter}
-          onValueChange={(v) => setFilter(v as TournamentStatus | "all")}
+          onValueChange={(v) => setFilter(v as TournamentStatus)}
           className="w-full"
         >
           <TabsList
@@ -67,7 +61,6 @@ export function TournamentsPage() {
           >
             {(
               [
-                { value: "all", label: "ALL" },
                 { value: "live", label: "LIVE" },
                 { value: "upcoming", label: "UPCOMING" },
                 { value: "completed", label: "COMPLETED" },

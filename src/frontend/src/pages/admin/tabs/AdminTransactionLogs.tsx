@@ -14,9 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Receipt, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowRight, Receipt, TrendingDown, TrendingUp } from "lucide-react";
 import { useState } from "react";
+import { TransactionDetailModal } from "../../../components/TransactionDetailModal";
 import { useData } from "../../../contexts/DataContext";
+import type { Transaction } from "../../../types";
 
 const ACTION_LABELS: Record<string, string> = {
   deposit: "Deposit",
@@ -31,6 +33,9 @@ const ACTION_LABELS: Record<string, string> = {
 export function AdminTransactionLogs() {
   const { transactions, users } = useData();
   const [filterUserId, setFilterUserId] = useState<string>("all");
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+
+  const selectedUser = users.find((u) => u.id === selectedTx?.userId);
 
   const nonAdminUsers = users.filter((u) => u.role !== "admin");
 
@@ -115,6 +120,7 @@ export function AdminTransactionLogs() {
                 <TableHead className="text-right" style={{ color: "#64748b" }}>
                   Amount
                 </TableHead>
+                <TableHead className="w-8" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -124,8 +130,12 @@ export function AdminTransactionLogs() {
                   <TableRow
                     key={tx.id}
                     data-ocid={`admin.log.row.${i + 1}`}
-                    style={{ borderColor: "rgba(255,255,255,0.04)" }}
-                    className="hover:bg-white/[0.02] transition-colors"
+                    style={{
+                      borderColor: "rgba(255,255,255,0.04)",
+                      cursor: "pointer",
+                    }}
+                    className="hover:bg-white/[0.04] transition-colors group"
+                    onClick={() => setSelectedTx(tx)}
                   >
                     <TableCell
                       className="text-xs font-mono"
@@ -174,6 +184,12 @@ export function AdminTransactionLogs() {
                         {tx.amount.toLocaleString()}
                       </span>
                     </TableCell>
+                    <TableCell className="w-8 text-center">
+                      <ArrowRight
+                        className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity mx-auto"
+                        style={{ color: "#00f5ff" }}
+                      />
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -181,6 +197,13 @@ export function AdminTransactionLogs() {
           </Table>
         </ScrollArea>
       )}
+
+      <TransactionDetailModal
+        transaction={selectedTx}
+        user={selectedUser}
+        onClose={() => setSelectedTx(null)}
+        data-ocid="admin.transaction.detail.modal"
+      />
     </div>
   );
 }
