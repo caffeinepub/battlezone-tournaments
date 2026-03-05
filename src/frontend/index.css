@@ -1,0 +1,285 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================
+   BATTLEZONE TOURNAMENTS - DESIGN TOKENS
+   Dark Gaming Theme with Neon Accents
+   ========================================== */
+
+/* Font Faces */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque[opsz,wdth,wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sora";
+  src: url("/assets/fonts/Sora[wght].woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/assets/fonts/JetBrainsMono[wght].woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Dark Gaming Palette (OKLCH raw L C H values) */
+    --background: 0.082 0.018 265;
+    --foreground: 0.92 0.012 265;
+
+    --card: 0.098 0.02 265;
+    --card-foreground: 0.92 0.012 265;
+
+    --popover: 0.11 0.025 265;
+    --popover-foreground: 0.92 0.012 265;
+
+    /* Primary: Cyan Neon */
+    --primary: 0.88 0.18 195;
+    --primary-foreground: 0.06 0.018 265;
+
+    /* Secondary: Purple */
+    --secondary: 0.18 0.04 265;
+    --secondary-foreground: 0.78 0.12 195;
+
+    --muted: 0.13 0.025 265;
+    --muted-foreground: 0.52 0.035 265;
+
+    /* Accent: Neon Green */
+    --accent: 0.86 0.22 142;
+    --accent-foreground: 0.06 0.018 265;
+
+    /* Destructive: Red */
+    --destructive: 0.62 0.22 22;
+    --destructive-foreground: 0.98 0 0;
+
+    --border: 0.18 0.04 265;
+    --input: 0.15 0.03 265;
+    --ring: 0.88 0.18 195;
+
+    /* Charts */
+    --chart-1: 0.88 0.18 195;
+    --chart-2: 0.86 0.22 142;
+    --chart-3: 0.68 0.22 290;
+    --chart-4: 0.85 0.18 55;
+    --chart-5: 0.62 0.22 22;
+
+    /* Sidebar */
+    --sidebar: 0.09 0.022 265;
+    --sidebar-foreground: 0.92 0.012 265;
+    --sidebar-primary: 0.88 0.18 195;
+    --sidebar-primary-foreground: 0.06 0.018 265;
+    --sidebar-accent: 0.14 0.03 265;
+    --sidebar-accent-foreground: 0.88 0.18 195;
+    --sidebar-border: 0.18 0.04 265;
+    --sidebar-ring: 0.88 0.18 195;
+
+    /* Custom Neon Values */
+    --neon-cyan: #00f5ff;
+    --neon-green: #39ff14;
+    --neon-purple: #8b5cf6;
+    --neon-yellow: #ffd700;
+    --neon-red: #ff4444;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, oklch(0.15 0.04 265 / 0.4) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, oklch(0.12 0.05 195 / 0.2) 0%, transparent 40%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+/* ==========================================
+   NEON GLOW UTILITIES
+   ========================================== */
+@layer utilities {
+  .neon-cyan {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan), 0 0 20px rgba(0, 245, 255, 0.4);
+  }
+
+  .neon-green {
+    color: var(--neon-green);
+    text-shadow: 0 0 8px var(--neon-green), 0 0 20px rgba(57, 255, 20, 0.4);
+  }
+
+  .neon-purple {
+    color: var(--neon-purple);
+    text-shadow: 0 0 8px var(--neon-purple), 0 0 20px rgba(139, 92, 246, 0.4);
+  }
+
+  .neon-yellow {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-yellow), 0 0 20px rgba(255, 215, 0, 0.4);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px rgba(0, 245, 255, 0.3), inset 0 0 10px rgba(0, 245, 255, 0.05);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 10px var(--neon-green), 0 0 20px rgba(57, 255, 20, 0.3);
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 10px var(--neon-purple), 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+
+  .glow-red {
+    box-shadow: 0 0 10px var(--neon-red), 0 0 20px rgba(255, 68, 68, 0.3);
+  }
+
+  .border-neon-cyan {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 8px rgba(0, 245, 255, 0.4);
+  }
+
+  .border-neon-green {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+  }
+
+  .glass-card {
+    background: oklch(0.098 0.02 265 / 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid oklch(0.22 0.04 265 / 0.8);
+  }
+
+  .glass-card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .glass-card-hover:hover {
+    background: oklch(0.12 0.025 265 / 0.9);
+    border-color: rgba(0, 245, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+  }
+
+  .btn-neon-cyan {
+    background: linear-gradient(135deg, oklch(0.82 0.18 195 / 0.15), oklch(0.75 0.2 200 / 0.1));
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 245, 255, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .btn-neon-cyan:hover:not(:disabled) {
+    background: linear-gradient(135deg, oklch(0.82 0.18 195 / 0.25), oklch(0.75 0.2 200 / 0.2));
+    box-shadow: 0 0 15px rgba(0, 245, 255, 0.5), 0 0 30px rgba(0, 245, 255, 0.2);
+  }
+
+  .btn-neon-green {
+    background: linear-gradient(135deg, oklch(0.82 0.2 142 / 0.15), oklch(0.78 0.22 148 / 0.1));
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .btn-neon-green:hover:not(:disabled) {
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.5), 0 0 30px rgba(57, 255, 20, 0.2);
+  }
+
+  .scan-line {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 245, 255, 0.02) 2px,
+      rgba(0, 245, 255, 0.02) 4px
+    );
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(oklch(0.18 0.04 265 / 0.4) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.18 0.04 265 / 0.4) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+/* ==========================================
+   SCROLLBAR STYLING
+   ========================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(0.098 0.02 265);
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.22 0.04 265);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.88 0.18 195 / 0.6);
+}
+
+/* ==========================================
+   ANIMATION KEYFRAMES
+   ========================================== */
+@keyframes pulse-neon {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(0, 245, 255, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(0, 245, 255, 0.6), 0 0 40px rgba(0, 245, 255, 0.2); }
+}
+
+.animate-pulse-neon {
+  animation: pulse-neon 2s ease-in-out infinite;
+}
+
+.animate-flicker {
+  animation: flicker 3s linear infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
