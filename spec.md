@@ -1,30 +1,20 @@
 # BattleZone Tournaments
 
 ## Current State
-- Full tournament management app with auth, wallet, payments, withdrawals, admin panel.
-- Navbar has a user dropdown with a Logout button (works via `AuthContext.logout()`).
-- ProfilePage shows user info and edit form, but no logout or delete account option.
-- DataContext has `updateUser` but no `deleteUser` function.
+App uses localStorage with an initialization version key (`bz_initialized_v2`) to seed data on first load. The seed data currently only contains 2 admin accounts (demo player was removed in a prior update). The admin panel Users tab shows all non-admin users from localStorage.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `deleteUser(id: string)` function in DataContext that removes the user from localStorage users array and also cleans up their transactions, payment requests, and withdrawal requests.
-- "Logout" button on the ProfilePage (in addition to the existing navbar dropdown option).
-- "Delete Account" button on the ProfilePage with a confirmation AlertDialog before proceeding.
-- On delete account confirmation: call `deleteUser`, call `logout`, then redirect to `/auth/login`.
+- Old versioned key cleanup (`bz_initialized_v1`, `bz_initialized_v2`) when re-initializing
 
 ### Modify
-- `DataContext`: expose `deleteUser` in the context type and implementation.
-- `ProfilePage`: add logout and delete account buttons in a new "Account Actions" section at the bottom of the profile card.
+- Bump `INITIALIZED` storage key from `bz_initialized_v2` to `bz_initialized_v3` to force a fresh re-seed on existing browsers
+- `initializeData()` now clears all stale storage keys before re-seeding to ensure clean state
 
 ### Remove
-- Nothing removed.
+- Nothing removed
 
 ## Implementation Plan
-1. Add `deleteUser` to DataContext interface + implementation (removes user, their transactions, payment requests, withdrawal requests from localStorage).
-2. Update ProfilePage to import AlertDialog, add a bottom "Account Actions" section with:
-   - A "Logout" button that calls `logout()` and navigates to `/auth/login`.
-   - A "Delete Account" button that opens an AlertDialog confirming the action.
-   - On confirm: call `deleteUser(session.userId)`, `logout()`, navigate to `/auth/login`.
-3. Add proper `data-ocid` markers on new buttons and dialog controls.
+1. Bump storage version key to v3 so existing browsers with stale/corrupted data (from demo player removal) get a fresh initialization
+2. Add cleanup of old versioned keys in the init function to prevent stale data overlap

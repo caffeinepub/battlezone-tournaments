@@ -92,6 +92,15 @@ function initializeData(): void {
   const initialized = getItem<boolean>(STORAGE_KEYS.INITIALIZED);
   if (initialized) return;
 
+  // Clear any stale data from previous versions
+  for (const key of Object.values(STORAGE_KEYS)) {
+    localStorage.removeItem(key);
+  }
+  // Also clear old versioned keys
+  for (const key of ["bz_initialized_v1", "bz_initialized_v2"]) {
+    localStorage.removeItem(key);
+  }
+
   setItem(STORAGE_KEYS.USERS, SEED_USERS);
   setItem(STORAGE_KEYS.TOURNAMENTS, SEED_TOURNAMENTS);
   setItem(STORAGE_KEYS.TRANSACTIONS, generateSeedTransactions());

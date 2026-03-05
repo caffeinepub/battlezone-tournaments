@@ -3,7 +3,7 @@
 // ==========================================
 
 export const STORAGE_KEYS = {
-  INITIALIZED: "bz_initialized_v2",
+  INITIALIZED: "bz_initialized_v3",
   AGE_CONFIRMED: "bz_age_confirmed",
   SESSION: "bz_session",
   USERS: "bz_users",
