@@ -81,6 +81,9 @@ interface DataContextType {
     actionType: Transaction["actionType"],
     reason: string,
   ) => boolean;
+
+  // Delete user
+  deleteUser: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -323,6 +326,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [withdrawalRequests],
   );
 
+  // ---- Delete User ----
+  const deleteUser = useCallback(
+    (id: string) => {
+      const updatedUsers = users.filter((u) => u.id !== id);
+      const updatedTransactions = transactions.filter((t) => t.userId !== id);
+      const updatedPayments = paymentRequests.filter((p) => p.userId !== id);
+      const updatedWithdrawals = withdrawalRequests.filter(
+        (w) => w.userId !== id,
+      );
+
+      setUsers(updatedUsers);
+      setTransactions(updatedTransactions);
+      setPaymentRequests(updatedPayments);
+      setWithdrawalRequests(updatedWithdrawals);
+
+      setItem(STORAGE_KEYS.USERS, updatedUsers);
+      setItem(STORAGE_KEYS.TRANSACTIONS, updatedTransactions);
+      setItem(STORAGE_KEYS.PAYMENT_REQUESTS, updatedPayments);
+      setItem(STORAGE_KEYS.WITHDRAWAL_REQUESTS, updatedWithdrawals);
+    },
+    [users, transactions, paymentRequests, withdrawalRequests],
+  );
+
   // ---- Platform Settings ----
   const updatePlatformSettings = useCallback(
     (updates: Partial<PlatformSettings>) => {
@@ -379,6 +405,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     platformSettings,
     updatePlatformSettings,
     adjustCoins,
+    deleteUser,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

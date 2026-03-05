@@ -1,8 +1,19 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, Edit2, User } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { CheckCircle2, Edit2, LogOut, Trash2, User } from "lucide-react";
 import { useState } from "react";
 import { Footer } from "../components/layout/Footer";
 import { Navbar } from "../components/layout/Navbar";
@@ -12,8 +23,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { useData } from "../contexts/DataContext";
 
 export function ProfilePage() {
-  const { updateUser, users } = useData();
-  const { session } = useAuth();
+  const { updateUser, users, deleteUser } = useData();
+  const { session, logout } = useAuth();
+  const navigate = useNavigate();
 
   const liveUser = users.find((u) => u.id === session?.userId);
 
@@ -29,6 +41,7 @@ export function ProfilePage() {
     inGameName?: string;
   }>({});
   const [saved, setSaved] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleEdit = () => {
     setForm({
@@ -354,10 +367,121 @@ export function ProfilePage() {
                 </Button>
               )}
             </div>
+
+            {/* Separator */}
+            <div
+              className="border-t pt-5 mt-2"
+              style={{ borderColor: "rgba(255,255,255,0.06)" }}
+            >
+              <p
+                className="text-xs uppercase tracking-widest font-bold mb-4"
+                style={{ color: "#475569" }}
+              >
+                Account Actions
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {/* Logout */}
+                <Button
+                  onClick={() => {
+                    logout();
+                    navigate({ to: "/auth/login" });
+                  }}
+                  data-ocid="profile.logout.button"
+                  variant="outline"
+                  className="flex items-center gap-2 font-bold h-10"
+                  style={{
+                    color: "#f97316",
+                    borderColor: "rgba(249,115,22,0.4)",
+                    background: "rgba(249,115,22,0.05)",
+                  }}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+
+                {/* Delete Account */}
+                <Button
+                  onClick={() => setDeleteDialogOpen(true)}
+                  data-ocid="profile.delete_account.open_modal_button"
+                  variant="outline"
+                  className="flex items-center gap-2 font-bold h-10"
+                  style={{
+                    color: "#ff4444",
+                    borderColor: "rgba(255,68,68,0.4)",
+                    background: "rgba(255,68,68,0.05)",
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Account
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
       <Footer />
+
+      {/* Delete Account Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent
+          data-ocid="profile.delete_account.dialog"
+          style={{
+            background: "rgba(10,10,20,0.98)",
+            border: "1px solid rgba(0,245,255,0.25)",
+            boxShadow: "0 0 40px rgba(0,245,255,0.05)",
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle
+              className="font-display font-black text-xl flex items-center gap-2"
+              style={{ color: "#ff4444" }}
+            >
+              <Trash2 className="w-5 h-5" />
+              Delete Account?
+            </AlertDialogTitle>
+            <AlertDialogDescription
+              className="text-sm leading-relaxed"
+              style={{ color: "#94a3b8" }}
+            >
+              This action is{" "}
+              <span style={{ color: "#ff4444" }} className="font-bold">
+                permanent and irreversible
+              </span>
+              . All your data — including your wallet balance, tournament
+              history, transactions, and payment records — will be permanently
+              deleted. You will not be able to recover your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel
+              data-ocid="profile.delete_account.cancel_button"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "#94a3b8",
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              data-ocid="profile.delete_account.confirm_button"
+              onClick={() => {
+                deleteUser(session!.userId);
+                logout();
+                navigate({ to: "/auth/login" });
+              }}
+              style={{
+                background: "rgba(255,68,68,0.15)",
+                border: "1px solid rgba(255,68,68,0.5)",
+                color: "#ff4444",
+              }}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Yes, Delete My Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
