@@ -1,4 +1,6 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -7,29 +9,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Ban, CheckCircle2, Users, XCircle } from "lucide-react";
+import { Ban, Search, Users } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { CoinBadge } from "../../../components/shared/CoinBadge";
-import { UserStatusBadge } from "../../../components/shared/StatusBadge";
 import { useData } from "../../../contexts/DataContext";
 
 export function AdminUserApprovals() {
-  const { users, updateUser } = useData();
+  const { users, updateUser, transactions } = useData();
+  const [search, setSearch] = useState("");
 
-  const pendingUsers = users.filter(
-    (u) => u.status === "pending" && u.role !== "admin",
-  );
   const allNonAdminUsers = users.filter((u) => u.role !== "admin");
 
-  const handleApprove = (userId: string, name: string) => {
-    updateUser(userId, { status: "approved" });
-    toast.success(`${name} approved!`);
-  };
-
-  const handleReject = (userId: string, name: string) => {
-    updateUser(userId, { status: "rejected" as const });
-    toast.success(`${name} rejected.`);
-  };
+  const filtered = allNonAdminUsers.filter((u) => {
+    const q = search.toLowerCase();
+    return (
+      u.fullName.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.inGameName.toLowerCase().includes(q) ||
+      u.freeFireUID.toLowerCase().includes(q)
+    );
+  });
 
   const handleBan = (userId: string, name: string) => {
     updateUser(userId, { status: "banned" });
@@ -41,128 +41,86 @@ export function AdminUserApprovals() {
     toast.success(`${name} has been unbanned.`);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Pending Approvals */}
-      <div
-        className="rounded-xl overflow-hidden"
+  const getTournamentCount = (userId: string) =>
+    transactions.filter(
+      (t) => t.userId === userId && t.actionType === "entry_fee",
+    ).length;
+
+  const getStatusBadge = (status: string) => {
+    if (status === "banned") {
+      return (
+        <Badge
+          className="text-xs font-bold"
+          style={{
+            background: "rgba(255,68,68,0.12)",
+            border: "1px solid rgba(255,68,68,0.35)",
+            color: "#ff6b6b",
+          }}
+        >
+          Banned
+        </Badge>
+      );
+    }
+    return (
+      <Badge
+        className="text-xs font-bold"
         style={{
-          background: "rgba(13,13,26,0.95)",
-          border: "1px solid rgba(255,215,0,0.2)",
+          background: "rgba(57,255,20,0.1)",
+          border: "1px solid rgba(57,255,20,0.3)",
+          color: "#39ff14",
         }}
       >
-        <div
-          className="p-4 border-b flex items-center gap-2"
-          style={{ borderColor: "rgba(255,255,255,0.06)" }}
-        >
-          <Users className="w-4 h-4" style={{ color: "#ffd700" }} />
+        Active
+      </Badge>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header row */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5" style={{ color: "#00f5ff" }} />
           <h2
-            className="font-display font-bold text-base"
+            className="font-display font-bold text-lg"
             style={{ color: "#e2e8f0" }}
           >
-            Pending Approvals ({pendingUsers.length})
+            All Users
           </h2>
+          <span
+            className="text-xs font-mono px-2 py-0.5 rounded-full"
+            style={{
+              background: "rgba(0,245,255,0.08)",
+              border: "1px solid rgba(0,245,255,0.2)",
+              color: "#00f5ff",
+            }}
+          >
+            {allNonAdminUsers.length}
+          </span>
         </div>
 
-        {pendingUsers.length === 0 ? (
-          <div
-            className="py-12 text-center"
-            data-ocid="admin.approvals.empty_state"
-          >
-            <CheckCircle2
-              className="w-8 h-8 mx-auto mb-2 opacity-30"
-              style={{ color: "#39ff14" }}
-            />
-            <p style={{ color: "#475569" }}>No pending approvals</p>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-                <TableHead style={{ color: "#64748b" }}>Name</TableHead>
-                <TableHead style={{ color: "#64748b" }}>Email</TableHead>
-                <TableHead style={{ color: "#64748b" }}>
-                  Free Fire UID
-                </TableHead>
-                <TableHead style={{ color: "#64748b" }}>IGN</TableHead>
-                <TableHead style={{ color: "#64748b" }}>Registered</TableHead>
-                <TableHead style={{ color: "#64748b" }}>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pendingUsers.map((user, i) => (
-                <TableRow
-                  key={user.id}
-                  data-ocid={`admin.pending.row.${i + 1}`}
-                  style={{ borderColor: "rgba(255,255,255,0.04)" }}
-                >
-                  <TableCell
-                    className="font-medium"
-                    style={{ color: "#e2e8f0" }}
-                  >
-                    {user.fullName}
-                  </TableCell>
-                  <TableCell className="text-sm" style={{ color: "#94a3b8" }}>
-                    {user.email}
-                  </TableCell>
-                  <TableCell
-                    className="font-mono text-sm"
-                    style={{ color: "#94a3b8" }}
-                  >
-                    {user.freeFireUID}
-                  </TableCell>
-                  <TableCell
-                    className="font-mono text-sm"
-                    style={{ color: "#94a3b8" }}
-                  >
-                    {user.inGameName}
-                  </TableCell>
-                  <TableCell
-                    className="text-xs font-mono"
-                    style={{ color: "#64748b" }}
-                  >
-                    {new Date(user.createdAt).toLocaleDateString("en-IN")}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleApprove(user.id, user.fullName)}
-                        data-ocid={`admin.approve.button.${i + 1}`}
-                        className="h-7 text-xs font-bold"
-                        style={{
-                          background: "rgba(57,255,20,0.1)",
-                          border: "1px solid rgba(57,255,20,0.4)",
-                          color: "#39ff14",
-                        }}
-                      >
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleReject(user.id, user.fullName)}
-                        data-ocid={`admin.reject.button.${i + 1}`}
-                        className="h-7 text-xs font-bold"
-                        style={{
-                          background: "rgba(255,68,68,0.08)",
-                          border: "1px solid rgba(255,68,68,0.3)",
-                          color: "#ff4444",
-                        }}
-                      >
-                        <XCircle className="w-3 h-3 mr-1" />
-                        Reject
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        {/* Search */}
+        <div className="relative w-64">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
+            style={{ color: "#475569" }}
+          />
+          <Input
+            placeholder="Search name, email, IGN..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            data-ocid="admin.users.search_input"
+            className="pl-9 h-8 text-xs font-mono"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#e2e8f0",
+            }}
+          />
+        </div>
       </div>
 
-      {/* All Users */}
+      {/* Table */}
       <div
         className="rounded-xl overflow-hidden"
         style={{
@@ -170,46 +128,51 @@ export function AdminUserApprovals() {
           border: "1px solid rgba(255,255,255,0.08)",
         }}
       >
-        <div
-          className="p-4 border-b flex items-center gap-2"
-          style={{ borderColor: "rgba(255,255,255,0.06)" }}
-        >
-          <Users className="w-4 h-4" style={{ color: "#00f5ff" }} />
-          <h2
-            className="font-display font-bold text-base"
-            style={{ color: "#e2e8f0" }}
-          >
-            All Users ({allNonAdminUsers.length})
-          </h2>
-        </div>
-
-        {allNonAdminUsers.length === 0 ? (
+        {filtered.length === 0 ? (
           <div
-            className="py-12 text-center"
+            className="py-16 text-center"
             data-ocid="admin.users.empty_state"
           >
-            <p style={{ color: "#475569" }}>No users registered</p>
+            <Users
+              className="w-8 h-8 mx-auto mb-2 opacity-20"
+              style={{ color: "#00f5ff" }}
+            />
+            <p className="text-sm" style={{ color: "#475569" }}>
+              {search
+                ? "No users match your search"
+                : "No users registered yet"}
+            </p>
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                <TableHead style={{ color: "#64748b" }}>#</TableHead>
                 <TableHead style={{ color: "#64748b" }}>Name</TableHead>
                 <TableHead style={{ color: "#64748b" }}>Email</TableHead>
                 <TableHead style={{ color: "#64748b" }}>IGN</TableHead>
+                <TableHead style={{ color: "#64748b" }}>FF UID</TableHead>
                 <TableHead style={{ color: "#64748b" }}>Balance</TableHead>
+                <TableHead style={{ color: "#64748b" }}>Tournaments</TableHead>
+                <TableHead style={{ color: "#64748b" }}>Joined</TableHead>
                 <TableHead style={{ color: "#64748b" }}>Status</TableHead>
-                <TableHead style={{ color: "#64748b" }}>Actions</TableHead>
+                <TableHead style={{ color: "#64748b" }}>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {allNonAdminUsers.map((user, i) => (
+              {filtered.map((user, i) => (
                 <TableRow
                   key={user.id}
                   data-ocid={`admin.users.row.${i + 1}`}
                   style={{ borderColor: "rgba(255,255,255,0.04)" }}
                   className="hover:bg-white/[0.02] transition-colors"
                 >
+                  <TableCell
+                    className="text-xs font-mono"
+                    style={{ color: "#475569" }}
+                  >
+                    {i + 1}
+                  </TableCell>
                   <TableCell
                     className="font-medium"
                     style={{ color: "#e2e8f0" }}
@@ -221,23 +184,39 @@ export function AdminUserApprovals() {
                   </TableCell>
                   <TableCell
                     className="font-mono text-sm"
-                    style={{ color: "#94a3b8" }}
+                    style={{ color: "#00f5ff" }}
                   >
                     {user.inGameName}
+                  </TableCell>
+                  <TableCell
+                    className="font-mono text-xs"
+                    style={{ color: "#64748b" }}
+                  >
+                    {user.freeFireUID}
                   </TableCell>
                   <TableCell>
                     <CoinBadge amount={user.coinBalance} size="sm" />
                   </TableCell>
-                  <TableCell>
-                    <UserStatusBadge status={user.status} />
+                  <TableCell
+                    className="text-sm font-mono"
+                    style={{ color: "#94a3b8" }}
+                  >
+                    {getTournamentCount(user.id)}
                   </TableCell>
+                  <TableCell
+                    className="text-xs font-mono"
+                    style={{ color: "#64748b" }}
+                  >
+                    {new Date(user.createdAt).toLocaleDateString("en-IN")}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(user.status)}</TableCell>
                   <TableCell>
                     {user.status === "banned" ? (
                       <Button
                         size="sm"
                         onClick={() => handleUnban(user.id, user.fullName)}
                         data-ocid={`admin.unban.button.${i + 1}`}
-                        className="h-7 text-xs"
+                        className="h-7 text-xs font-bold"
                         style={{
                           background: "rgba(57,255,20,0.08)",
                           border: "1px solid rgba(57,255,20,0.3)",
