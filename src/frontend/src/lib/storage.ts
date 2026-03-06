@@ -3,7 +3,7 @@
 // ==========================================
 
 export const STORAGE_KEYS = {
-  INITIALIZED: "bz_initialized_v3",
+  INITIALIZED: "bz_initialized_v4",
   AGE_CONFIRMED: "bz_age_confirmed",
   SESSION: "bz_session",
   USERS: "bz_users",
@@ -12,6 +12,8 @@ export const STORAGE_KEYS = {
   PAYMENT_REQUESTS: "bz_payment_requests",
   WITHDRAWAL_REQUESTS: "bz_withdrawal_requests",
   PLATFORM_SETTINGS: "bz_platform_settings",
+  GIVEAWAYS: "bz_giveaways",
+  GIVEAWAY_ENTRIES: "bz_giveaway_entries",
 } as const;
 
 export function getItem<T>(key: string): T | null {

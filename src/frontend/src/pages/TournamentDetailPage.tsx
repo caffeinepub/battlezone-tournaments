@@ -46,7 +46,13 @@ export function TournamentDetailPage() {
               Tournament not found
             </p>
             <Button
-              onClick={() => navigate({ to: "/tournaments" })}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={() =>
+                navigate({
+                  to: "/tournaments",
+                  search: { tab: undefined } as any,
+                })
+              }
               className="mt-4"
               style={{
                 border: "1px solid rgba(0,245,255,0.4)",
@@ -113,7 +119,10 @@ export function TournamentDetailPage() {
         {/* Back button */}
         <button
           type="button"
-          onClick={() => navigate({ to: "/tournaments" })}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onClick={() =>
+            navigate({ to: "/tournaments", search: { tab: undefined } as any })
+          }
           data-ocid="tournament.detail.button"
           className="flex items-center gap-2 mb-6 text-sm hover:opacity-80 transition-opacity"
           style={{ color: "#64748b" }}

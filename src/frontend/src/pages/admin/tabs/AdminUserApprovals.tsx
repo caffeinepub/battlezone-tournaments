@@ -9,15 +9,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Ban, Search, Users } from "lucide-react";
+import { Ban, Eye, Search, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { UserDetailModal } from "../../../components/admin/UserDetailModal";
 import { CoinBadge } from "../../../components/shared/CoinBadge";
 import { useData } from "../../../contexts/DataContext";
+import type { LocalUser } from "../../../types";
 
 export function AdminUserApprovals() {
   const { users, updateUser, transactions } = useData();
   const [search, setSearch] = useState("");
+  const [selectedUser, setSelectedUser] = useState<LocalUser | null>(null);
 
   const allNonAdminUsers = users.filter((u) => u.role !== "admin");
 
@@ -165,7 +168,8 @@ export function AdminUserApprovals() {
                   key={user.id}
                   data-ocid={`admin.users.row.${i + 1}`}
                   style={{ borderColor: "rgba(255,255,255,0.04)" }}
-                  className="hover:bg-white/[0.02] transition-colors"
+                  className="hover:bg-white/[0.03] transition-colors cursor-pointer"
+                  onClick={() => setSelectedUser(user)}
                 >
                   <TableCell
                     className="text-xs font-mono"
@@ -211,36 +215,61 @@ export function AdminUserApprovals() {
                   </TableCell>
                   <TableCell>{getStatusBadge(user.status)}</TableCell>
                   <TableCell>
-                    {user.status === "banned" ? (
+                    <div className="flex items-center gap-1.5">
                       <Button
                         size="sm"
-                        onClick={() => handleUnban(user.id, user.fullName)}
-                        data-ocid={`admin.unban.button.${i + 1}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedUser(user);
+                        }}
+                        data-ocid={`admin.view.button.${i + 1}`}
                         className="h-7 text-xs font-bold"
                         style={{
-                          background: "rgba(57,255,20,0.08)",
-                          border: "1px solid rgba(57,255,20,0.3)",
-                          color: "#39ff14",
+                          background: "rgba(0,245,255,0.06)",
+                          border: "1px solid rgba(0,245,255,0.25)",
+                          color: "#00f5ff",
                         }}
                       >
-                        Unban
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
                       </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => handleBan(user.id, user.fullName)}
-                        data-ocid={`admin.ban.button.${i + 1}`}
-                        className="h-7 text-xs font-bold"
-                        style={{
-                          background: "rgba(255,68,68,0.06)",
-                          border: "1px solid rgba(255,68,68,0.25)",
-                          color: "#ff6b6b",
-                        }}
-                      >
-                        <Ban className="w-3 h-3 mr-1" />
-                        Ban
-                      </Button>
-                    )}
+                      {user.status === "banned" ? (
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUnban(user.id, user.fullName);
+                          }}
+                          data-ocid={`admin.unban.button.${i + 1}`}
+                          className="h-7 text-xs font-bold"
+                          style={{
+                            background: "rgba(57,255,20,0.08)",
+                            border: "1px solid rgba(57,255,20,0.3)",
+                            color: "#39ff14",
+                          }}
+                        >
+                          Unban
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBan(user.id, user.fullName);
+                          }}
+                          data-ocid={`admin.ban.button.${i + 1}`}
+                          className="h-7 text-xs font-bold"
+                          style={{
+                            background: "rgba(255,68,68,0.06)",
+                            border: "1px solid rgba(255,68,68,0.25)",
+                            color: "#ff6b6b",
+                          }}
+                        >
+                          <Ban className="w-3 h-3 mr-1" />
+                          Ban
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -248,6 +277,12 @@ export function AdminUserApprovals() {
           </Table>
         )}
       </div>
+
+      {/* User Detail Modal */}
+      <UserDetailModal
+        user={selectedUser}
+        onClose={() => setSelectedUser(null)}
+      />
     </div>
   );
 }

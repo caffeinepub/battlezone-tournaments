@@ -13,6 +13,7 @@ import { STORAGE_KEYS, getItem } from "./lib/storage";
 
 // Pages
 import { AgeGate } from "./pages/AgeGate";
+import { GiveawayPage } from "./pages/GiveawayPage";
 import { PaymentPage } from "./pages/PaymentPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { TournamentDetailPage } from "./pages/TournamentDetailPage";
@@ -52,7 +53,8 @@ function requireAdmin(): void {
     throw redirect({ to: "/admin/login" });
   }
   if ((session as { role?: string }).role !== "admin") {
-    throw redirect({ to: "/tournaments" });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    throw redirect({ to: "/tournaments", search: { tab: undefined } as any });
   }
 }
 
@@ -95,7 +97,12 @@ const ageGateRoute = createRoute({
     const ageConfirmed = getItem<boolean>(STORAGE_KEYS.AGE_CONFIRMED);
     if (ageConfirmed) {
       const session = getItem(STORAGE_KEYS.SESSION);
-      if (session) throw redirect({ to: "/tournaments" });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (session)
+        throw redirect({
+          to: "/tournaments",
+          search: { tab: undefined } as any,
+        });
       throw redirect({ to: "/auth/login" });
     }
   },
@@ -110,7 +117,9 @@ const loginRoute = createRoute({
     const ageConfirmed = getItem<boolean>(STORAGE_KEYS.AGE_CONFIRMED);
     if (!ageConfirmed) throw redirect({ to: "/" });
     const session = getItem(STORAGE_KEYS.SESSION);
-    if (session) throw redirect({ to: "/tournaments" });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (session)
+      throw redirect({ to: "/tournaments", search: { tab: undefined } as any });
   },
   component: LoginPage,
 });
@@ -130,6 +139,9 @@ const tournamentsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/tournaments",
   beforeLoad: requireAuth,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   component: TournamentsPage,
 });
 
@@ -166,6 +178,13 @@ const profileRoute = createRoute({
   path: "/profile",
   beforeLoad: requireAuth,
   component: ProfilePage,
+});
+
+const giveawayRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/giveaway",
+  beforeLoad: requireAuth,
+  component: GiveawayPage,
 });
 
 const adminLoginRoute = createRoute({
@@ -215,6 +234,7 @@ const routeTree = rootRoute.addChildren([
   paymentRoute,
   withdrawalRoute,
   profileRoute,
+  giveawayRoute,
   adminLoginRoute,
   adminRoute,
   termsRoute,

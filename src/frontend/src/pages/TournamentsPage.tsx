@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSearch } from "@tanstack/react-router";
 import { Swords, Trophy } from "lucide-react";
 import { useState } from "react";
 import { Footer } from "../components/layout/Footer";
@@ -13,7 +14,9 @@ type MainFilter = TournamentStatus | "my";
 export function TournamentsPage() {
   const { tournaments } = useData();
   const { session } = useAuth();
-  const [filter, setFilter] = useState<MainFilter>("upcoming");
+  const search = useSearch({ from: "/tournaments" });
+  const initialTab: MainFilter = search.tab === "my" ? "my" : "upcoming";
+  const [filter, setFilter] = useState<MainFilter>(initialTab);
   const [mySubFilter, setMySubFilter] = useState<TournamentStatus>("upcoming");
 
   const filtered = tournaments.filter((t) => t.status === filter);

@@ -17,6 +17,8 @@ import {
 } from "../lib/seedData";
 import { STORAGE_KEYS, generateId, getItem, setItem } from "../lib/storage";
 import type {
+  Giveaway,
+  GiveawayEntry,
   LocalUser,
   PaymentRequest,
   PlatformSettings,
@@ -73,6 +75,25 @@ interface DataContextType {
   platformSettings: PlatformSettings;
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => void;
 
+  // Giveaways
+  giveaways: Giveaway[];
+  getGiveawayById: (id: string) => Giveaway | undefined;
+  createGiveaway: (
+    data: Omit<
+      Giveaway,
+      "id" | "createdAt" | "status" | "winnerId" | "winnerPickedAt"
+    >,
+  ) => Giveaway;
+  updateGiveaway: (id: string, updates: Partial<Giveaway>) => void;
+  giveawayEntries: GiveawayEntry[];
+  getEntriesByGiveaway: (giveawayId: string) => GiveawayEntry[];
+  getEntriesByUser: (userId: string) => GiveawayEntry[];
+  createGiveawayEntry: (
+    data: Omit<GiveawayEntry, "id" | "enteredAt">,
+  ) => GiveawayEntry;
+  hasUserEnteredGiveaway: (giveawayId: string, userId: string) => boolean;
+  pickGiveawayWinner: (giveawayId: string) => string | null;
+
   // Coin operations
   adjustCoins: (
     userId: string,
@@ -106,6 +127,8 @@ function initializeData(): void {
   setItem(STORAGE_KEYS.PAYMENT_REQUESTS, []);
   setItem(STORAGE_KEYS.WITHDRAWAL_REQUESTS, []);
   setItem(STORAGE_KEYS.PLATFORM_SETTINGS, SEED_PLATFORM_SETTINGS);
+  setItem(STORAGE_KEYS.GIVEAWAYS, []);
+  setItem(STORAGE_KEYS.GIVEAWAY_ENTRIES, []);
   setItem(STORAGE_KEYS.INITIALIZED, true);
 }
 
@@ -137,6 +160,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       // Migrate legacy settings that may not have newer fields
       return { ...SEED_PLATFORM_SETTINGS, ...stored };
     },
+  );
+  const [giveaways, setGiveaways] = useState<Giveaway[]>(
+    () => getItem<Giveaway[]>(STORAGE_KEYS.GIVEAWAYS) ?? [],
+  );
+  const [giveawayEntries, setGiveawayEntries] = useState<GiveawayEntry[]>(
+    () => getItem<GiveawayEntry[]>(STORAGE_KEYS.GIVEAWAY_ENTRIES) ?? [],
   );
 
   // ---- Users ----
@@ -335,6 +364,91 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [withdrawalRequests],
   );
 
+  // ---- Giveaways ----
+  const getGiveawayById = useCallback(
+    (id: string) => giveaways.find((g) => g.id === id),
+    [giveaways],
+  );
+
+  const createGiveaway = useCallback(
+    (
+      data: Omit<
+        Giveaway,
+        "id" | "createdAt" | "status" | "winnerId" | "winnerPickedAt"
+      >,
+    ): Giveaway => {
+      const giveaway: Giveaway = {
+        ...data,
+        id: generateId(),
+        status: "active",
+        createdAt: new Date().toISOString(),
+      };
+      const updated = [...giveaways, giveaway];
+      setGiveaways(updated);
+      setItem(STORAGE_KEYS.GIVEAWAYS, updated);
+      return giveaway;
+    },
+    [giveaways],
+  );
+
+  const updateGiveaway = useCallback(
+    (id: string, updates: Partial<Giveaway>) => {
+      const updated = giveaways.map((g) =>
+        g.id === id ? { ...g, ...updates } : g,
+      );
+      setGiveaways(updated);
+      setItem(STORAGE_KEYS.GIVEAWAYS, updated);
+    },
+    [giveaways],
+  );
+
+  const getEntriesByGiveaway = useCallback(
+    (giveawayId: string) =>
+      giveawayEntries.filter((e) => e.giveawayId === giveawayId),
+    [giveawayEntries],
+  );
+
+  const getEntriesByUser = useCallback(
+    (userId: string) => giveawayEntries.filter((e) => e.userId === userId),
+    [giveawayEntries],
+  );
+
+  const hasUserEnteredGiveaway = useCallback(
+    (giveawayId: string, userId: string) =>
+      giveawayEntries.some(
+        (e) => e.giveawayId === giveawayId && e.userId === userId,
+      ),
+    [giveawayEntries],
+  );
+
+  const createGiveawayEntry = useCallback(
+    (data: Omit<GiveawayEntry, "id" | "enteredAt">): GiveawayEntry => {
+      const entry: GiveawayEntry = {
+        ...data,
+        id: generateId(),
+        enteredAt: new Date().toISOString(),
+      };
+      const updated = [...giveawayEntries, entry];
+      setGiveawayEntries(updated);
+      setItem(STORAGE_KEYS.GIVEAWAY_ENTRIES, updated);
+      return entry;
+    },
+    [giveawayEntries],
+  );
+
+  const pickGiveawayWinner = useCallback(
+    (giveawayId: string): string | null => {
+      const entries = giveawayEntries.filter(
+        (e) => e.giveawayId === giveawayId,
+      );
+      if (entries.length === 0) return null;
+      const randomIndex = Math.floor(Math.random() * entries.length);
+      const winner = entries[randomIndex];
+      return winner.userId;
+    },
+    [giveawayEntries],
+  );
+
   // ---- Delete User ----
   const deleteUser = useCallback(
     (id: string) => {
@@ -429,6 +543,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     updateWithdrawalRequest,
     platformSettings,
     updatePlatformSettings,
+    giveaways,
+    getGiveawayById,
+    createGiveaway,
+    updateGiveaway,
+    giveawayEntries,
+    getEntriesByGiveaway,
+    getEntriesByUser,
+    createGiveawayEntry,
+    hasUserEnteredGiveaway,
+    pickGiveawayWinner,
     adjustCoins,
     deleteUser,
   };

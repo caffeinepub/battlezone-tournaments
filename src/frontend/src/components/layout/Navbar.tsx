@@ -11,10 +11,12 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowDownToLine,
   CreditCard,
+  Gift,
   LogOut,
   Menu,
   ShieldCheck,
   Swords,
+  Trophy,
   User,
   Wallet,
   X,
@@ -46,6 +48,7 @@ export function Navbar() {
     { to: "/wallet", label: "Wallet", icon: Wallet },
     { to: "/payment", label: "Payment", icon: CreditCard },
     { to: "/withdrawal", label: "Withdraw", icon: ArrowDownToLine },
+    { to: "/giveaway", label: "Giveaways", icon: Gift },
   ];
 
   return (
@@ -62,6 +65,8 @@ export function Navbar() {
         {/* Logo */}
         <Link
           to="/tournaments"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          search={{ tab: undefined } as any}
           data-ocid="nav.link"
           className="flex items-center gap-2 group"
         >
@@ -102,6 +107,8 @@ export function Navbar() {
             <Link
               key={to}
               to={to}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              search={to === "/tournaments" ? ({} as any) : undefined}
               data-ocid={`nav.${label.toLowerCase()}.link`}
               className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-medium transition-all duration-200 hover:bg-white/5"
               style={{ color: "#94a3b8" }}
@@ -270,49 +277,202 @@ export function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile side-drawer menu */}
       {mobileOpen && (
-        <div
-          className="md:hidden border-t"
-          style={{
-            background: "rgba(8,8,16,0.98)",
-            borderColor: "rgba(0,245,255,0.1)",
-          }}
-        >
-          <div className="container mx-auto px-4 py-3 flex flex-col gap-1">
-            {navLinks.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setMobileOpen(false)}
-                data-ocid={`nav.mobile.${label.toLowerCase()}.link`}
-                className="flex items-center gap-2 px-3 py-2.5 rounded text-sm font-medium"
-                style={{ color: "#94a3b8" }}
-                activeProps={{
-                  style: {
+        <>
+          {/* Backdrop */}
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            className="md:hidden fixed inset-0 z-40 w-full h-full border-0"
+            style={{
+              background: "rgba(0,0,0,0.6)",
+              backdropFilter: "blur(4px)",
+              cursor: "default",
+            }}
+            onClick={() => setMobileOpen(false)}
+          />
+          {/* Drawer */}
+          <div
+            className="md:hidden fixed top-0 right-0 h-full w-72 z-50 flex flex-col"
+            style={{
+              background: "rgba(8,8,16,0.99)",
+              borderLeft: "1px solid rgba(0,245,255,0.15)",
+              boxShadow: "-8px 0 40px rgba(0,0,0,0.6)",
+            }}
+          >
+            {/* Drawer Header */}
+            <div
+              className="flex items-center justify-between px-5 py-4 border-b"
+              style={{ borderColor: "rgba(0,245,255,0.1)" }}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-7 h-7 rounded flex items-center justify-center font-display font-black text-sm"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(0,245,255,0.2), rgba(57,255,20,0.1))",
+                    border: "1px solid rgba(0,245,255,0.4)",
                     color: "#00f5ff",
-                    background: "rgba(0,245,255,0.08)",
-                  },
+                  }}
+                >
+                  BZ
+                </div>
+                <span
+                  className="font-display font-black text-sm"
+                  style={{ color: "#00f5ff" }}
+                >
+                  BattleZone
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                className="p-1.5 rounded hover:bg-white/5 transition-colors"
+                style={{ color: "#64748b" }}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* User info */}
+            <div
+              className="px-5 py-4 border-b"
+              style={{ borderColor: "rgba(0,245,255,0.08)" }}
+            >
+              <p
+                className="text-xs font-mono mb-1"
+                style={{ color: "#64748b" }}
+              >
+                Signed in as
+              </p>
+              <p className="font-bold" style={{ color: "#00f5ff" }}>
+                {displayName}
+              </p>
+              <div
+                className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded border font-mono text-xs font-bold"
+                style={{
+                  color: "#ffd700",
+                  borderColor: "rgba(255,215,0,0.4)",
+                  background: "rgba(255,215,0,0.08)",
                 }}
               >
-                <Icon className="w-4 h-4" />
-                {label}
-              </Link>
-            ))}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                onClick={() => setMobileOpen(false)}
-                data-ocid="nav.mobile.admin.link"
-                className="flex items-center gap-2 px-3 py-2.5 rounded text-sm font-bold"
-                style={{ color: "#8b5cf6" }}
+                💰 {coinBalance.toLocaleString()} coins
+              </div>
+            </div>
+
+            {/* Nav Links */}
+            <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-1">
+              <p
+                className="text-xs font-mono px-2 mb-2"
+                style={{ color: "#475569" }}
               >
-                <ShieldCheck className="w-4 h-4" />
-                Admin Panel
+                NAVIGATION
+              </p>
+
+              {navLinks.map(({ to, label, icon: Icon }) => {
+                // Special styling for Giveaways
+                const isGiveaway = to === "/giveaway";
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    search={to === "/tournaments" ? ({} as any) : undefined}
+                    onClick={() => setMobileOpen(false)}
+                    data-ocid={`nav.mobile.${label.toLowerCase().replace(/\s+/g, "_")}.link`}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
+                    style={{ color: isGiveaway ? "#ffd700" : "#94a3b8" }}
+                    activeProps={{
+                      style: {
+                        color: isGiveaway ? "#ffd700" : "#00f5ff",
+                        background: isGiveaway
+                          ? "rgba(255,215,0,0.08)"
+                          : "rgba(0,245,255,0.08)",
+                        border: `1px solid ${isGiveaway ? "rgba(255,215,0,0.2)" : "rgba(0,245,255,0.15)"}`,
+                      },
+                    }}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {label}
+                  </Link>
+                );
+              })}
+
+              {/* My Tournaments special link */}
+              <div
+                className="mt-2 pt-2 border-t"
+                style={{ borderColor: "rgba(255,255,255,0.06)" }}
+              >
+                <p
+                  className="text-xs font-mono px-2 mb-2"
+                  style={{ color: "#475569" }}
+                >
+                  QUICK ACCESS
+                </p>
+                <Link
+                  to="/tournaments"
+                  search={{ tab: "my" }}
+                  onClick={() => setMobileOpen(false)}
+                  data-ocid="nav.mobile.my_tournaments.link"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-white/5"
+                  style={{ color: "#39ff14" }}
+                >
+                  <Trophy className="w-4 h-4" />
+                  My Tournaments
+                </Link>
+              </div>
+
+              {isAdmin && (
+                <div
+                  className="mt-2 pt-2 border-t"
+                  style={{ borderColor: "rgba(139,92,246,0.15)" }}
+                >
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    data-ocid="nav.mobile.admin.link"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-white/5"
+                    style={{ color: "#8b5cf6" }}
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Admin Panel
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Footer actions */}
+            <div
+              className="px-3 py-4 border-t flex flex-col gap-1"
+              style={{ borderColor: "rgba(255,255,255,0.06)" }}
+            >
+              <Link
+                to="/profile"
+                onClick={() => setMobileOpen(false)}
+                data-ocid="nav.mobile.profile.link"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white/5"
+                style={{ color: "#94a3b8" }}
+              >
+                <User className="w-4 h-4" />
+                Profile
               </Link>
-            )}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  handleLogout();
+                }}
+                data-ocid="nav.mobile.logout.button"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:bg-white/5 w-full text-left"
+                style={{ color: "#ff4444" }}
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );

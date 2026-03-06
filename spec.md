@@ -1,34 +1,39 @@
 # BattleZone Tournaments
 
 ## Current State
-- Users have a single `coinBalance` field that mixes deposited coins, bonuses, prizes, and admin adjustments
-- The Wallet page shows one unified balance with a total transaction history
-- Withdrawals are limited only by `coinBalance` (any coin source)
-- Transaction types: deposit, withdrawal, entry_fee, prize, bonus, penalty, admin_adjustment
+- Navbar has a hamburger (three-lines) mobile menu with links to Tournaments, Wallet, Payment, Withdraw, and Admin
+- "My Tournaments" section lives as a tab inside TournamentsPage
+- Admin Users tab shows a table of all users with Ban/Unban action only (no clickable detail view)
+- No Giveaway system exists anywhere
 
 ## Requested Changes (Diff)
 
 ### Add
-- `winningBalance` field on `LocalUser` to track coins earned from tournament prizes separately
-- WalletPage: two distinct balance cards -- "Added Coins" (deposited + bonus + admin_adjustment) and "Winnings" (prize coins from tournaments)
-- WithdrawalPage: show winnings balance separately; enforce that withdrawals can only be made from winnings (not from deposited coins)
-- When winnings are withdrawn, deduct from `winningBalance` first, then from `coinBalance`
+- **My Tournaments in sidebar/hamburger**: Move "My Tournaments" into the hamburger (three-lines) side-drawer menu as a dedicated menu item linking to the existing My Tournaments tab on TournamentsPage
+- **Admin user detail modal**: Clicking any user row in the admin Users tab opens a full-detail modal showing: profile info (name, email, IGN, FF UID, join date, status), coin balance breakdown (added coins vs winnings), tournament history, and transaction history
+- **Giveaway system (user-facing)**: A new `/giveaway` route and page where logged-in users can browse active/upcoming/ended giveaways. Each card shows name, prize description, entry fee (in coins), end date/time, and entry count. Users can enter by paying the entry fee (coins deducted from coinBalance). Users can see their own entries.
+- **Giveaway system (admin)**: New "Giveaways" tab in AdminDashboard. Admin can: create a giveaway (name, description/prize, entry fee in coins, end date), view all entries (with user IGN and FF UID), use an "Auto Pick Winner" button that randomly selects one entered user as the winner, and publish the winner (auto-credits a configurable coin prize to the winner with a "giveaway_prize" transaction).
+- **Giveaway data types**: `Giveaway` and `GiveawayEntry` types added to types/index.ts
+- **Giveaway storage**: STORAGE_KEYS.GIVEAWAYS and STORAGE_KEYS.GIVEAWAY_ENTRIES added; DataContext extended with giveaway CRUD and entry operations
+- **Nav link for Giveaways**: Add "Giveaways" link in both desktop nav and hamburger mobile menu
 
 ### Modify
-- `LocalUser` type: add `winningBalance: number` (defaults to 0)
-- `adjustCoins` / coin credit logic: when `actionType === "prize"`, also increment `winningBalance` on the user
-- When processing a withdrawal, deduct from `winningBalance` as well as `coinBalance`; validate that withdrawal amount <= winningBalance
-- WalletPage: separate transaction history into "Added Coins" section (deposit, bonus, admin_adjustment) and "Winnings" section (prize), with a combined total balance shown at top
-- WithdrawalPage: replace "Available Balance" with two rows -- "Winnings (withdrawable)" and "Added Coins (non-withdrawable)"; cap withdrawal amount to winningBalance
+- **Navbar hamburger menu**: Expand the mobile drawer to include "My Tournaments" link (points to `/tournaments` with `?tab=my`) and "Giveaways" link. Also add "My Tournaments" as a distinct item in the desktop nav or keep it accessible via the hamburger.
+- **TournamentsPage**: Accept a `?tab=my` query param to auto-open the My Tournaments sub-tab when navigated from the hamburger menu link
+- **AdminUserApprovals**: Rows are now clickable; clicking opens a UserDetailModal
+- **AdminDashboard**: Add "Giveaways" tab
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Add `winningBalance: number` to `LocalUser` type (default 0)
-2. Update `SEED_USERS` in seedData to include `winningBalance: 0`
-3. In `DataContext.adjustCoins`: when actionType is "prize", also call `updateUser` to increment `winningBalance`
-4. In `DataContext.adjustCoins`: when actionType is "withdrawal", also decrement `winningBalance` by the withdrawn amount (capped at winningBalance)
-5. Update `WithdrawalPage`: read `winningBalance` from liveUser; replace the balance check so `validAmount` checks `amountNum <= winningBalance`; show two balance rows; update error messages to say "winnings balance"
-6. Update `WalletPage`: show two balance cards -- "Added Coins" total and "Winnings" total; both are visible but only winnings are withdrawable
-7. In `WithdrawalPage`, update the "Insufficient balance" error to reference winnings specifically
+1. Add `Giveaway` and `GiveawayEntry` types to types/index.ts
+2. Add GIVEAWAYS and GIVEAWAY_ENTRIES to STORAGE_KEYS in storage.ts and bump init key to v4
+3. Extend DataContext with giveaway state and operations (createGiveaway, updateGiveaway, getGiveawayEntries, createGiveawayEntry, pickGiveawayWinner)
+4. Update Navbar to add "My Tournaments" and "Giveaways" in both desktop nav and mobile hamburger drawer
+5. Update TournamentsPage to read `?tab=my` search param and default to "my" filter
+6. Add UserDetailModal component (profile, balance breakdown, tournaments joined, transactions)
+7. Update AdminUserApprovals to make rows clickable, opening UserDetailModal
+8. Create GiveawayPage (user-facing) at /giveaway
+9. Create AdminGiveaways tab component for the admin panel
+10. Register /giveaway route in App.tsx; add Giveaways tab to AdminDashboard

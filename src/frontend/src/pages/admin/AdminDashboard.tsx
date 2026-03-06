@@ -7,6 +7,7 @@ import { Footer } from "../../components/layout/Footer";
 import { Navbar } from "../../components/layout/Navbar";
 import { useAuth } from "../../contexts/AuthContext";
 import { AdminCoinAdjustments } from "./tabs/AdminCoinAdjustments";
+import { AdminGiveaways } from "./tabs/AdminGiveaways";
 import { AdminPayments } from "./tabs/AdminPayments";
 import { AdminSettings } from "./tabs/AdminSettings";
 import { AdminTournaments } from "./tabs/AdminTournaments";
@@ -20,6 +21,7 @@ const TABS = [
   { value: "payments", label: "Payments" },
   { value: "coins", label: "Coins" },
   { value: "withdrawals", label: "Withdrawals" },
+  { value: "giveaways", label: "Giveaways" },
   { value: "logs", label: "Logs" },
   { value: "settings", label: "Settings" },
 ] as const;
@@ -96,6 +98,9 @@ export function AdminDashboard() {
           </TabsContent>
           <TabsContent value="withdrawals">
             <AdminWithdrawals />
+          </TabsContent>
+          <TabsContent value="giveaways">
+            <AdminGiveaways />
           </TabsContent>
           <TabsContent value="logs">
             <AdminTransactionLogs />

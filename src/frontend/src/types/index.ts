@@ -83,6 +83,26 @@ export interface WithdrawalRequest {
   reviewedAt?: string;
 }
 
+export interface Giveaway {
+  id: string;
+  name: string;
+  description: string; // prize description
+  entryFee: number; // coins to enter
+  prizeCoins: number; // coins awarded to winner
+  endDateTime: string; // ISO string
+  status: "active" | "ended";
+  winnerId?: string;
+  winnerPickedAt?: string;
+  createdAt: string;
+}
+
+export interface GiveawayEntry {
+  id: string;
+  giveawayId: string;
+  userId: string;
+  enteredAt: string;
+}
+
 export interface PlatformSettings {
   upiId: string;
   platformFeePercent: number; // e.g. 4 means 4%

@@ -52,7 +52,8 @@ export function LoginPage() {
       if (user.role === "admin") {
         navigate({ to: "/admin" });
       } else {
-        navigate({ to: "/tournaments" });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigate({ to: "/tournaments", search: { tab: undefined } as any });
       }
     } finally {
       setLoading(false);
