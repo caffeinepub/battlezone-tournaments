@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +19,7 @@ import {
   ChevronUp,
   Gift,
   Shuffle,
+  Trash2,
   Trophy,
   Users,
   X,
@@ -21,6 +33,7 @@ export function AdminGiveaways() {
     giveaways,
     createGiveaway,
     updateGiveaway,
+    deleteGiveaway,
     getEntriesByGiveaway,
     pickGiveawayWinner,
     adjustCoins,
@@ -471,6 +484,77 @@ export function AdminGiveaways() {
                             End
                           </Button>
                         )}
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              data-ocid={`admin.giveaway.delete_button.${idx + 1}`}
+                              className="h-8 text-xs font-bold"
+                              style={{
+                                background: "rgba(255,68,68,0.06)",
+                                border: "1px solid rgba(255,68,68,0.25)",
+                                color: "#ff4444",
+                              }}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent
+                            data-ocid={`admin.giveaway.delete.dialog.${idx + 1}`}
+                            style={{
+                              background: "rgba(13,13,26,0.98)",
+                              border: "1px solid rgba(255,68,68,0.3)",
+                            }}
+                          >
+                            <AlertDialogHeader>
+                              <AlertDialogTitle style={{ color: "#e2e8f0" }}>
+                                Delete Giveaway?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription
+                                style={{ color: "#94a3b8" }}
+                              >
+                                This will permanently delete{" "}
+                                <span
+                                  style={{ color: "#ff6b6b", fontWeight: 600 }}
+                                >
+                                  "{g.name}"
+                                </span>{" "}
+                                and all its entries. This action cannot be
+                                undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel
+                                data-ocid={`admin.giveaway.delete.cancel_button.${idx + 1}`}
+                                style={{
+                                  background: "rgba(255,255,255,0.04)",
+                                  border: "1px solid rgba(255,255,255,0.1)",
+                                  color: "#94a3b8",
+                                }}
+                              >
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                data-ocid={`admin.giveaway.delete.confirm_button.${idx + 1}`}
+                                onClick={() => {
+                                  deleteGiveaway(g.id);
+                                  toast.success(
+                                    `"${g.name}" deleted permanently.`,
+                                  );
+                                }}
+                                style={{
+                                  background: "rgba(255,68,68,0.15)",
+                                  border: "1px solid rgba(255,68,68,0.4)",
+                                  color: "#ff4444",
+                                }}
+                              >
+                                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                                Delete Permanently
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
 

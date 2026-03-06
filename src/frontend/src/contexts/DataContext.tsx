@@ -104,6 +104,12 @@ interface DataContextType {
 
   // Delete user
   deleteUser: (id: string) => void;
+
+  // Delete tournament
+  deleteTournament: (id: string) => void;
+
+  // Delete giveaway
+  deleteGiveaway: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -472,6 +478,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [users, transactions, paymentRequests, withdrawalRequests],
   );
 
+  // ---- Delete Tournament ----
+  const deleteTournament = useCallback(
+    (id: string) => {
+      const updated = tournaments.filter((t) => t.id !== id);
+      setTournaments(updated);
+      setItem(STORAGE_KEYS.TOURNAMENTS, updated);
+    },
+    [tournaments],
+  );
+
+  // ---- Delete Giveaway ----
+  const deleteGiveaway = useCallback(
+    (id: string) => {
+      const updatedGiveaways = giveaways.filter((g) => g.id !== id);
+      const updatedEntries = giveawayEntries.filter((e) => e.giveawayId !== id);
+      setGiveaways(updatedGiveaways);
+      setGiveawayEntries(updatedEntries);
+      setItem(STORAGE_KEYS.GIVEAWAYS, updatedGiveaways);
+      setItem(STORAGE_KEYS.GIVEAWAY_ENTRIES, updatedEntries);
+    },
+    [giveaways, giveawayEntries],
+  );
+
   // ---- Platform Settings ----
   const updatePlatformSettings = useCallback(
     (updates: Partial<PlatformSettings>) => {
@@ -555,6 +584,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     pickGiveawayWinner,
     adjustCoins,
     deleteUser,
+    deleteTournament,
+    deleteGiveaway,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +28,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit2, Key, Plus, Swords, Trophy, Users, X } from "lucide-react";
+import {
+  Edit2,
+  Key,
+  Plus,
+  Swords,
+  Trash2,
+  Trophy,
+  Users,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CoinBadge } from "../../../components/shared/CoinBadge";
@@ -511,7 +531,8 @@ const EMPTY_FORM: FormData = {
 };
 
 export function AdminTournaments() {
-  const { tournaments, createTournament, updateTournament } = useData();
+  const { tournaments, createTournament, updateTournament, deleteTournament } =
+    useData();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
@@ -1088,6 +1109,79 @@ export function AdminTournaments() {
                               </span>
                             )}
                           </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                data-ocid={`admin.tournament.delete_button.${i + 1}`}
+                                className="h-7 text-xs font-bold"
+                                style={{
+                                  background: "rgba(255,68,68,0.06)",
+                                  border: "1px solid rgba(255,68,68,0.25)",
+                                  color: "#ff6b6b",
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent
+                              data-ocid={`admin.tournament.delete.dialog.${i + 1}`}
+                              style={{
+                                background: "rgba(13,13,26,0.98)",
+                                border: "1px solid rgba(255,68,68,0.3)",
+                              }}
+                            >
+                              <AlertDialogHeader>
+                                <AlertDialogTitle style={{ color: "#e2e8f0" }}>
+                                  Delete Tournament?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription
+                                  style={{ color: "#94a3b8" }}
+                                >
+                                  This will permanently delete{" "}
+                                  <span
+                                    style={{
+                                      color: "#ff6b6b",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    "{t.name}"
+                                  </span>{" "}
+                                  and all its data. This action cannot be
+                                  undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel
+                                  data-ocid={`admin.tournament.delete.cancel_button.${i + 1}`}
+                                  style={{
+                                    background: "rgba(255,255,255,0.04)",
+                                    border: "1px solid rgba(255,255,255,0.1)",
+                                    color: "#94a3b8",
+                                  }}
+                                >
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  data-ocid={`admin.tournament.delete.confirm_button.${i + 1}`}
+                                  onClick={() => {
+                                    deleteTournament(t.id);
+                                    toast.success(
+                                      `"${t.name}" deleted permanently.`,
+                                    );
+                                  }}
+                                  style={{
+                                    background: "rgba(255,68,68,0.15)",
+                                    border: "1px solid rgba(255,68,68,0.4)",
+                                    color: "#ff4444",
+                                  }}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                                  Delete Permanently
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>
