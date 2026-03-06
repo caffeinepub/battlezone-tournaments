@@ -91,6 +91,7 @@ export function RegisterPage() {
         freeFireUID: form.freeFireUID.trim(),
         inGameName: form.inGameName.trim(),
         coinBalance: 0,
+        winningBalance: 0,
         status: "approved",
         role: "user",
       });

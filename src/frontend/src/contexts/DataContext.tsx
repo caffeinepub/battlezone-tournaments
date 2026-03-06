@@ -382,7 +382,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const newBalance = user.coinBalance + amount;
       if (newBalance < 0) return false;
 
-      updateUser(userId, { coinBalance: newBalance });
+      // Track winning balance separately
+      const currentWinningBalance = user.winningBalance ?? 0;
+      let newWinningBalance = currentWinningBalance;
+
+      if (actionType === "prize") {
+        // Prize credits go to both coinBalance and winningBalance
+        newWinningBalance = currentWinningBalance + amount;
+      } else if (actionType === "withdrawal") {
+        // Withdrawal deducts from winningBalance first (amount is negative)
+        const deduction = Math.abs(amount);
+        newWinningBalance = Math.max(0, currentWinningBalance - deduction);
+      }
+
+      updateUser(userId, {
+        coinBalance: newBalance,
+        winningBalance: newWinningBalance,
+      });
       addTransaction({ userId, actionType, amount, reason });
       return true;
     },

@@ -10,6 +10,7 @@ export interface LocalUser {
   freeFireUID: string;
   inGameName: string;
   coinBalance: number;
+  winningBalance: number; // coins earned from tournament prizes (withdrawable)
   status: "pending" | "approved" | "banned" | "rejected";
   role: "user" | "admin";
   principal?: string;

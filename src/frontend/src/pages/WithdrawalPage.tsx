@@ -16,7 +16,9 @@ import {
   CheckCircle2,
   Gift,
   Minus,
+  PlusCircle,
   Smartphone,
+  Trophy,
   Wallet,
 } from "lucide-react";
 import { useState } from "react";
@@ -53,17 +55,18 @@ export function WithdrawalPage() {
 
   const liveUser = users.find((u) => u.id === session?.userId);
   const coinBalance = liveUser?.coinBalance ?? 0;
+  const winningBalance = liveUser?.winningBalance ?? 0;
   const withdrawals = session ? getWithdrawalsByUser(session.userId) : [];
 
   const MIN_WITHDRAWAL = 100;
   const feePercent = platformSettings.platformFeePercent ?? 4;
 
-  // Live fee breakdown
+  // Live fee breakdown — only winnings are withdrawable
   const amountNum = Number.parseInt(amountCoins, 10);
   const validAmount =
     !Number.isNaN(amountNum) &&
     amountNum >= MIN_WITHDRAWAL &&
-    amountNum <= coinBalance;
+    amountNum <= winningBalance;
   const platformFee = validAmount
     ? Math.ceil((amountNum * feePercent) / 100)
     : 0;
@@ -78,8 +81,8 @@ export function WithdrawalPage() {
       newErrors.amount = "Amount is required.";
     } else if (Number.isNaN(parsedAmount) || parsedAmount < MIN_WITHDRAWAL) {
       newErrors.amount = `Minimum withdrawal is ${MIN_WITHDRAWAL} coins.`;
-    } else if (parsedAmount > coinBalance) {
-      newErrors.amount = `Insufficient balance. You have ${coinBalance} coins.`;
+    } else if (parsedAmount > winningBalance) {
+      newErrors.amount = `Insufficient winnings. You can withdraw up to ${winningBalance} coins (winnings only).`;
     }
 
     if (method === "upi") {
@@ -110,7 +113,7 @@ export function WithdrawalPage() {
       const fee = Math.ceil((parsedAmount * feePercent) / 100);
       const payout = parsedAmount - fee;
 
-      // Deduct the full requested amount from wallet
+      // Deduct the full requested amount from wallet (winnings only)
       const success = adjustCoins(
         session!.userId,
         -parsedAmount,
@@ -118,7 +121,9 @@ export function WithdrawalPage() {
         `Withdrawal request: ${parsedAmount} coins via ${methodLabel} to ${destination} (fee: ${fee}, payout: ${payout})`,
       );
       if (!success) {
-        setErrors({ amount: "Failed to deduct coins. Insufficient balance." });
+        setErrors({
+          amount: "Failed to deduct coins. Insufficient winnings balance.",
+        });
         return;
       }
 
@@ -173,11 +178,51 @@ export function WithdrawalPage() {
             >
               Balance Info
             </h2>
-            <div>
-              <p className="text-xs mb-1" style={{ color: "#64748b" }}>
-                Available Balance
-              </p>
-              <CoinBadge amount={coinBalance} size="lg" />
+
+            {/* Winnings balance — withdrawable */}
+            <div
+              className="rounded-lg p-3"
+              style={{
+                background: "rgba(57,255,20,0.05)",
+                border: "1px solid rgba(57,255,20,0.25)",
+              }}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <Trophy className="w-3.5 h-3.5" style={{ color: "#39ff14" }} />
+                <p
+                  className="text-xs font-semibold uppercase tracking-wide"
+                  style={{ color: "#39ff14" }}
+                >
+                  Winnings (Withdrawable)
+                </p>
+              </div>
+              <CoinBadge amount={winningBalance} size="lg" />
+            </div>
+
+            {/* Added coins — non-withdrawable */}
+            <div
+              className="rounded-lg p-3"
+              style={{
+                background: "rgba(0,245,255,0.04)",
+                border: "1px solid rgba(0,245,255,0.15)",
+              }}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <PlusCircle
+                  className="w-3.5 h-3.5"
+                  style={{ color: "#00f5ff" }}
+                />
+                <p
+                  className="text-xs font-semibold uppercase tracking-wide"
+                  style={{ color: "#00f5ff" }}
+                >
+                  Added Coins (Non-withdrawable)
+                </p>
+              </div>
+              <CoinBadge
+                amount={Math.max(0, coinBalance - winningBalance)}
+                size="lg"
+              />
             </div>
             <div
               className="space-y-2 text-sm rounded-lg p-3"
@@ -203,6 +248,10 @@ export function WithdrawalPage() {
               </p>
               <p style={{ color: "#94a3b8" }}>
                 💰 Coins are deducted immediately upon request
+              </p>
+              <p style={{ color: "#94a3b8" }}>
+                🏆 Only <strong className="text-foreground">Winnings</strong>{" "}
+                can be withdrawn. Added/deposited coins are for entry fees only.
               </p>
             </div>
 
@@ -370,7 +419,7 @@ export function WithdrawalPage() {
                     setErrors((p) => ({ ...p, amount: undefined }));
                   }}
                   data-ocid="withdrawal.amount.input"
-                  max={coinBalance}
+                  max={winningBalance}
                   style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(0,245,255,0.2)",
@@ -491,7 +540,7 @@ export function WithdrawalPage() {
 
               <Button
                 type="submit"
-                disabled={submitting || coinBalance < MIN_WITHDRAWAL}
+                disabled={submitting || winningBalance < MIN_WITHDRAWAL}
                 data-ocid="withdrawal.submit_button"
                 className="w-full h-11 font-bold tracking-wide"
                 style={{
