@@ -12,8 +12,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, Edit2, LogOut, Trash2, User } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowDownToLine,
+  CheckCircle2,
+  CreditCard,
+  Edit2,
+  Gift,
+  LogOut,
+  Swords,
+  Trash2,
+  Trophy,
+  User,
+  Wallet,
+} from "lucide-react";
 import { useState } from "react";
 import { Footer } from "../components/layout/Footer";
 import { Navbar } from "../components/layout/Navbar";
@@ -21,6 +33,63 @@ import { CoinBadge } from "../components/shared/CoinBadge";
 import { UserStatusBadge } from "../components/shared/StatusBadge";
 import { useAuth } from "../contexts/AuthContext";
 import { useData } from "../contexts/DataContext";
+
+const quickLinks = [
+  {
+    to: "/tournaments" as const,
+    search: {} as Record<string, string>,
+    label: "Tournaments",
+    icon: Swords,
+    color: "#00f5ff",
+    rgb: "0,245,255",
+    ocid: "profile.quicklinks.tournaments.link",
+  },
+  {
+    to: "/giveaway" as const,
+    search: undefined as undefined,
+    label: "Giveaways",
+    icon: Gift,
+    color: "#ffd700",
+    rgb: "255,215,0",
+    ocid: "profile.quicklinks.giveaways.link",
+  },
+  {
+    to: "/tournaments" as const,
+    search: { tab: "my" },
+    label: "My Tourneys",
+    icon: Trophy,
+    color: "#39ff14",
+    rgb: "57,255,20",
+    ocid: "profile.quicklinks.my_tournaments.link",
+  },
+  {
+    to: "/wallet" as const,
+    search: undefined as undefined,
+    label: "Wallet",
+    icon: Wallet,
+    color: "#39ff14",
+    rgb: "57,255,20",
+    ocid: "profile.quicklinks.wallet.link",
+  },
+  {
+    to: "/payment" as const,
+    search: undefined as undefined,
+    label: "Payment",
+    icon: CreditCard,
+    color: "#b0ffd0",
+    rgb: "57,255,20",
+    ocid: "profile.quicklinks.payment.link",
+  },
+  {
+    to: "/withdrawal" as const,
+    search: undefined as undefined,
+    label: "Withdraw",
+    icon: ArrowDownToLine,
+    color: "#b0ffd0",
+    rgb: "57,255,20",
+    ocid: "profile.quicklinks.withdraw.link",
+  },
+];
 
 export function ProfilePage() {
   const { updateUser, users, deleteUser } = useData();
@@ -366,6 +435,50 @@ export function ProfilePage() {
                   Edit Profile
                 </Button>
               )}
+            </div>
+
+            {/* Quick Links */}
+            <div
+              className="border-t pt-5 mt-2"
+              style={{ borderColor: "rgba(255,255,255,0.06)" }}
+            >
+              <p
+                className="text-xs uppercase tracking-widest font-mono font-bold mb-3"
+                style={{ color: "#475569" }}
+              >
+                Quick Links
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {quickLinks.map(
+                  ({ to, search, label, icon: Icon, color, rgb, ocid }) => (
+                    <Link
+                      key={ocid}
+                      to={to}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      search={search as any}
+                      data-ocid={ocid}
+                      className="flex items-center gap-2.5 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-150 active:scale-95 hover:brightness-110"
+                      style={{
+                        color,
+                        background: `rgba(${rgb},0.06)`,
+                        border: `1px solid rgba(${rgb},0.18)`,
+                        minHeight: "48px",
+                      }}
+                    >
+                      <span
+                        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: `rgba(${rgb},0.12)`,
+                          border: `1px solid rgba(${rgb},0.2)`,
+                        }}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                      </span>
+                      <span className="leading-tight">{label}</span>
+                    </Link>
+                  ),
+                )}
+              </div>
             </div>
 
             {/* Separator */}
